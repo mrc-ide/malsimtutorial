@@ -1,0 +1,12 @@
+Package: malsimtutorial
+Title: Run Malariasimulation Tutorials
+Version: 0.0.0.9000
+Authors@R: 
+    person("Lydia", "Haile", , email = "lhaile@ic.ac.uk", role = c("aut", "cre"))
+    person("Tom", "Brewer", email =  "tomas.brewer16@imperial.ac.uk", role = c("aut", "cre"))
+    person("Richard", "Sheppard",  email =  "richard.sheppard11@imperial.ac.uk", role = c("aut", "cre"))
+Description: Runs malariasimulation tutorials for training on June 11.
+License: use_mit_license()
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
