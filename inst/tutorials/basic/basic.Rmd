@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = FALSE)
 Use of `malariasimulation` can be divided into four stages:
 
 
-![](basic_malsim.png)
+![](images/basic_malsim.png){width=100%}
 
 We will look at each of these in turn.
 
@@ -30,7 +30,7 @@ We will look at each of these in turn.
 
 The key function here is `get_parameters()`
 
-Try running it to take to see what it generates!
+Try running it to see what it generates.
 
 ```{r get_parameters, exercise=TRUE}
 get_parameters()
@@ -38,7 +38,7 @@ get_parameters()
 
 You should see a long list of parameters - it's a complicated model!
 
-To understand what each parameter does in the model, you can go to the [help page](https://mrc-ide.github.io/malariasimulation/reference/get_parameters.html) (use `?get_parameters()` when you are in R to see the same information).
+To understand what each parameter does in the model, you can go to the [help page](https://mrc-ide.github.io/malariasimulation/reference/get_parameters.html) (or use `?get_parameters()` when you are in R to see the same information).
 
 
 Please don't try to understand all of these right now! Instead, use the help page to try answering the questions below for now, and if there are any parameters you'd like to know more about, feel free to ask a demonstrator.
@@ -46,41 +46,41 @@ Please don't try to understand all of these right now! Instead, use the help pag
 
 ```{r quiz}
 quiz(caption = "Parameters Qs",
-  question_numeric(
-    "How many days does an untreated asymptomatic infection last for (A -> U)?",
-    answer(195, correct = TRUE), allow_retry = T, correct = ("That's right! On average, asymptomatic infections last for 195 days before they become sub-patent infections.")),
-  question("What is the model's default mosquito species?",
-           answer("An. arabiensis"),
-           answer("An. funestus"),
-           answer("An. gambiae", correct = TRUE),
-           answer("An. stephensi"), allow_retry = T),
-  question_numeric("What is the default adult mosquito mortality rate (to 3 dp)?",
-                   answer("0.132", correct = TRUE), allow_retry = T, correct = "That's right! The parameter is called `mum`."),
-  question_numeric("What is the default human population size?",
-                   answer("100", correct = TRUE), allow_retry = T, correct = "That's right! 100 is really quite a small population, but it's worth bearing in mind that simulations with larger populations take a longer time to run."),
-  question_text("What is the default mosquito population size?",
-                answer("1000", correct = TRUE), allow_retry = T),
-  question_numeric("What is the default initial susceptible human state proportion (to 2 dp)?",
-                   answer("0.42", correct = TRUE), allow_retry = T),
-  question("How much immunity to malaria does the initial population have?",
-           answer("0", correct = TRUE),
-           answer("2.4"),
-           answer("20"),
-           answer("53"), allow_retry = T,
-           correct = "That's right! The population begins with no immunity. This isn't realistic for most settings, and we will describe how to adjust this during the tutorial."
-  )
+     question_numeric(
+       "How many days does an untreated asymptomatic infection last for (A -> U)?",
+       answer(195, correct = TRUE), allow_retry = T, correct = ("That's right! On average, asymptomatic infections last for 195 days before they become sub-patent infections.")),
+     question("What is the model's default mosquito species?",
+              answer("An. arabiensis"),
+              answer("An. funestus"),
+              answer("An. gambiae", correct = TRUE),
+              answer("An. stephensi"), allow_retry = T),
+     question_numeric("What is the default adult mosquito mortality rate (to 3 dp)?",
+                      answer("0.132", correct = TRUE), allow_retry = T, correct = "That's right! The parameter is called `mum`."),
+     question_numeric("What is the default human population size?",
+                      answer("100", correct = TRUE), allow_retry = T, correct = "That's right! 100 is really quite a small population, but it's worth bearing in mind that simulations with larger populations take a longer time to run."),
+     question_text("What is the default mosquito population size?",
+                   answer("1000", correct = TRUE), allow_retry = T),
+     question_numeric("What is the default initial susceptible human state proportion (to 2 dp)?",
+                      answer("0.42", correct = TRUE), allow_retry = T),
+     question("How much immunity to malaria does the initial population have?",
+              answer("0", correct = TRUE),
+              answer("2.4"),
+              answer("20"),
+              answer("53"), allow_retry = T,
+              correct = "That's right! The population begins with no immunity. This isn't realistic for most settings, and we will describe how to adjust this during the tutorial."
+     )
 )
 
 ```
 
 
-Any of these parameters can be adjusted within the `get_parameters()` function using the overrides argument:
+Any of these parameters can be adjusted within the `get_parameters()` function using the overrides argument. For example, we can increase the human population size (`human_population`) like this:
 
 ```{r parameters_override, exercise=TRUE}
 get_parameters(overrides = list(human_population = 1000))
 ```
 
-Most of the parameters have been carefully calibrated so will not need adjusting manually. An exception in the human population size!
+Most of the parameters have been carefully calibrated so will not need adjusting manually. One exception is the human population size.
 
 Try changing the population size to 250,000 and check that this has updated in the parameter list.
 
@@ -89,26 +89,28 @@ Try changing the population size to 250,000 and check that this has updated in t
 ```
 
 
-We generally store a parameter set in an object as so:
+We generally store a parameter set in an object for future use like so:
 
 ```{r parameters_store, exercise=TRUE}
 parameters <- get_parameters()
 ```
 
-By doing this, we can also adjust individual parameters manually outside of the `get_parameters()` function.
+By so doing, we can also adjust individual parameters manually outside of the `get_parameters()` function.
 
 ```{r parameters_alternative, exercise=TRUE}
+parameters <- get_parameters()
 parameters$human_population <- 1000
+parameters$human_population
 ```
 
 
-`malariasimulation` also contains various helper functions and in-built parameters to help you design your parameter set. We will not cover these in detail here, but they include:
+`malariasimulation` also contains various helper functions and in-built parameters to help you design your parameter set. We will not cover these in detail here, but they include setting:
 
-- demography (`set_demography()`),
-- mosquito species and proportions (`set_species()`, with in-built species specific parameter sets: An. arabiensis (`arab_params()`), An. funestus (`fun_params()`), An. gambiae (`gamb_params()`) and An. stephensi (`steph_params()`)),
-- drug interventions including MDA and SMC (`set_drugs()`, `set_clinical_treatment()`, `set_mda()`, `set_smc()`),
-- bednet and IRS vector control (`set_bednets()`, `set_spraying()`),
-- pre-erythrocytic and transmission blocking vaccines (`set_mass_pev()`, `set_pev_epi()`, `set_tbv()`).
+- population demographies `set_demography()`,
+- mosquito species and proportions `set_species()`, with in-built species specific parameter sets: An. arabiensis `arab_params()`, An. funestus `fun_params()`, An. gambiae `gamb_params()` and An. stephensi `steph_params()`,
+- drug interventions including MDA and SMC `set_drugs()`, `set_clinical_treatment()`, `set_mda()`, `set_smc()`,
+- bednet and IRS vector control `set_bednets()`, `set_spraying()`,
+- pre-erythrocytic and transmission blocking vaccines `set_mass_pev()`, `set_pev_epi()`, `set_tbv()`.
 
 Please see the package vignettes for more details on how to use these, or ask a demonstrator!
 
@@ -117,7 +119,7 @@ Please see the package vignettes for more details on how to use these, or ask a 
 
 ## 2: Set equilibrium
 
-Do you remember how we saw default parameters for the initial human state proportions and human immunity levels? These may not be applicable to the scenario you are trying to simulate (e.g., particularly if you are starting with no malaria immunity in a high-transmission malaria-endemic area!).
+Do you remember seeing default parameters for the initial human disease state proportions and human immunity levels? These may not be applicable to the scenario you are trying to simulate (e.g., particularly if you are starting a simulation with no immunity to malaria in a high-transmission malaria-endemic area!).
 
 Luckily, we have a function that sets the initial transmission level AND will calculate an equilibrium for that transmissibility level and the chosen model parameters: `set_equilibrium()`. In `set_equilibrium()` we define the initial EIR (entomological inoculation rate - is the rate of human biting multiplied by the sporozoite infection rate), which can be varied to reflect the disease prevalence in a region.
 
@@ -132,7 +134,15 @@ parameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)
 Note that the parameters list now contains a new element called `init_EIR`:
 
 ```{r set_eq_check, exercise=TRUE}
+parameters <- get_parameters()
+parameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)
 parameters_eq$init_EIR
+```
+
+Try setting the initial EIR to 10.
+
+```{r set_eq_exercise, exercise=TRUE}
+
 ```
 
 
@@ -178,23 +188,23 @@ head(simulation_output)
 
 Again, there's a lot of information that's being outputted! To understand these outputs, we can view the [help page](https://mrc-ide.github.io/malariasimulation/reference/run_simulation.html) (or use `?run_simulation()` when you are in R to see the same information).
 
-Let's do another quick quiz about these outputs are!
+Let's do another quick quiz about these outputs!
 
 ```{r quiz2}
 quiz(caption = "Outputs Qs",
-  question("What units are the age groups of outputs in?",
-           answer("days", correct = TRUE), correct = "That's right! This means we need to convert the ages into years by dividing by 365 to make sense of them.",
-           answer("weeks"),
-           answer("months"),
-           answer("years"), allow_retry = T),
-  question("What is the age-band for the default prevalence outputs?",
-           answer("0-5 years"),
-           answer("0.5-5 years"),
-           answer("2-10 years", correct = TRUE),
-           answer("all ages"), allow_retry = T, correct = "That's right! These age brackets can be changed with the `prevalence_rendering_min_ages` and `prevalence_rendering_max_ages` parameters."),
-  question("What is Tr_count and why is it 0? Check your answer with a demonstrator!",
-           answer("I'm satisfied that I understand!", correct = T), correct = "That's right! Tr represents the number of treated individuals, but because we haven't set any clinical treatment interventions yet no one has been treated.")
-  )
+     question("What units are the age groups of outputs in?",
+              answer("days", correct = TRUE), correct = "That's right! This means we need to convert the ages into years by dividing by 365 to make sense of them.",
+              answer("weeks"),
+              answer("months"),
+              answer("years"), allow_retry = T),
+     question("What is the age-band for the default prevalence outputs?",
+              answer("0-5 years"),
+              answer("0.5-5 years"),
+              answer("2-10 years", correct = TRUE),
+              answer("all ages"), allow_retry = T, correct = "That's right! These age brackets can be changed with the `prevalence_rendering_min_ages` and `prevalence_rendering_max_ages` parameters."),
+     question("What is Tr_count and why is it 0? Check your answer with a demonstrator!",
+              answer("I'm satisfied that I understand!", correct = T), correct = "That's right! Tr represents the number of treated individuals, but because we haven't set any clinical treatment interventions yet no one has been treated.")
+)
 
 ```
 
@@ -203,6 +213,11 @@ Let's now create a simple plot to visualise the human states.
 The human states should be maintained approximately at their equilibrium (remember, the model is stochastic, so there will be some "random" variation through time).
 
 ```{r malsim_output_vis, exercise=TRUE}
+parameters <- get_parameters()
+parameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)
+year <- 365
+simulation_output <- run_simulation(timesteps = 10 * year, parameters = parameters_eq)
+
 simulation_output |> 
   select(timestep, paste0(c("S","A","D","U","Tr"), "_count")) |> 
   pivot_longer(cols = ends_with("count"), names_to = "human_state", values_to = "count") |> 
@@ -212,15 +227,16 @@ simulation_output |>
 ```
 
 One of our key outputs is the prevalence of light-microscopy detectable infections.
-This is not directly output by the model, so we must calculate it! Luckily, the model outputs the number of detectable infections and the total number within the defined age group, so it's not too difficult:
+This is not directly output by the model, so we must calculate it! Luckily, the model outputs the number of detectable infections and the total number within the defined age group, so it's not too difficult.
 
 ```{r malsim_output_prev, exercise=TRUE}
+parameters <- get_parameters()
+parameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)
+year <- 365
+simulation_output <- run_simulation(timesteps = 10 * year, parameters = parameters_eq)
+
 simulation_output$lm_prevalence_730_3650 <- simulation_output$n_detect_730_3650 / simulation_output$n_730_3650
-```
 
-... and plot it!
-
-```{r malsim_output_prev_vis, exercise=TRUE}
 ggplot(data = simulation_output) +
   geom_line(aes(x = timestep, y = lm_prevalence_730_3650))
 ```
@@ -239,7 +255,7 @@ Well done! We've covered all the content in the basic tutorial. Before we move o
 
 - Generate two different parameter sets with population sizes of 50 and 500.
 - Run simulations of 1000 timesteps for each parameter set.
-- Plot the light-microscopy detectable prevalence of 0.5-5 year olds through time.
+- Plot the light-microscopy detectable prevalence of 2-10 year olds through time.
 - What differences do you see in prevalence between the two simulations?
 - How can we explain these differences?
 
