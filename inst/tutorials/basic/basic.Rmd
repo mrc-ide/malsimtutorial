@@ -176,7 +176,7 @@ simulation_output <- run_simulation(timesteps = 10 * year, parameters = paramete
 head(simulation_output)
 ```
 
-Again, there's a lot of information that's being outputted! To understand these outputs, we can view the [help page](https://mrc-ide.github.io/malariasimulation/reference/run_simulation.html) (or use `?get_parameters()` when you are in R to see the same information).
+Again, there's a lot of information that's being outputted! To understand these outputs, we can view the [help page](https://mrc-ide.github.io/malariasimulation/reference/run_simulation.html) (or use `?run_simulation()` when you are in R to see the same information).
 
 Let's do another quick quiz about these outputs are!
 
