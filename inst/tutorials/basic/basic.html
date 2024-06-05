@@ -116,12 +116,12 @@ This tutorial is an entry-level guide to using the model package in
 R.</p>
 <p>Use of <code>malariasimulation</code> can be divided into four
 stages:</p>
-<p><img src="basic_malsim.png" /></p>
+<p><img src="images/basic_malsim.png" style="width:100.0%" /></p>
 <p>We will look at each of these in turn.</p>
 <div id="section-generate-parameter-set" class="section level2">
 <h2>1: Generate parameter set</h2>
 <p>The key function here is <code>get_parameters()</code></p>
-<p>Try running it to take to see what it generates!</p>
+<p>Try running it to see what it generates.</p>
 <div class="tutorial-exercise" data-label="get_parameters"
 data-completion="1" data-diagnostics="1" data-startover="1"
 data-lines="0" data-pipe="|&gt;">
@@ -133,7 +133,7 @@ model!</p>
 <p>To understand what each parameter does in the model, you can go to
 the <a
 href="https://mrc-ide.github.io/malariasimulation/reference/get_parameters.html">help
-page</a> (use <code>?get_parameters()</code> when you are in R to see
+page</a> (or use <code>?get_parameters()</code> when you are in R to see
 the same information).</p>
 <p>Please don’t try to understand all of these right now! Instead, use
 the help page to try answering the questions below for now, and if there
@@ -197,7 +197,9 @@ demonstrator.</p>
 </div>
 </div>
 <p>Any of these parameters can be adjusted within the
-<code>get_parameters()</code> function using the overrides argument:</p>
+<code>get_parameters()</code> function using the overrides argument. For
+example, we can increase the human population size
+(<code>human_population</code>) like this:</p>
 <div class="tutorial-exercise" data-label="parameters_override"
 data-completion="1" data-diagnostics="1" data-startover="1"
 data-lines="0" data-pipe="|&gt;">
@@ -205,7 +207,7 @@ data-lines="0" data-pipe="|&gt;">
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
 <p>Most of the parameters have been carefully calibrated so will not
-need adjusting manually. An exception in the human population size!</p>
+need adjusting manually. One exception is the human population size.</p>
 <p>Try changing the population size to 250,000 and check that this has
 updated in the parameter list.</p>
 <div class="tutorial-exercise" data-label="parameters_override_check"
@@ -213,50 +215,53 @@ data-completion="1" data-diagnostics="1" data-startover="1"
 data-lines="0" data-pipe="|&gt;">
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
-<p>We generally store a parameter set in an object as so:</p>
+<p>We generally store a parameter set in an object for future use like
+so:</p>
 <div class="tutorial-exercise" data-label="parameters_store"
 data-completion="1" data-diagnostics="1" data-startover="1"
 data-lines="0" data-pipe="|&gt;">
 <pre class="text"><code>parameters &lt;- get_parameters()</code></pre>
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
-<p>By doing this, we can also adjust individual parameters manually
+<p>By so doing, we can also adjust individual parameters manually
 outside of the <code>get_parameters()</code> function.</p>
 <div class="tutorial-exercise" data-label="parameters_alternative"
 data-completion="1" data-diagnostics="1" data-startover="1"
 data-lines="0" data-pipe="|&gt;">
-<pre class="text"><code>parameters$human_population &lt;- 1000</code></pre>
+<pre class="text"><code>parameters &lt;- get_parameters()
+parameters$human_population &lt;- 1000
+parameters$human_population</code></pre>
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
 <p><code>malariasimulation</code> also contains various helper functions
 and in-built parameters to help you design your parameter set. We will
-not cover these in detail here, but they include:</p>
+not cover these in detail here, but they include setting:</p>
 <ul>
-<li>demography (<code>set_demography()</code>),</li>
-<li>mosquito species and proportions (<code>set_species()</code>, with
+<li>population demographies <code>set_demography()</code>,</li>
+<li>mosquito species and proportions <code>set_species()</code>, with
 in-built species specific parameter sets: An. arabiensis
-(<code>arab_params()</code>), An. funestus (<code>fun_params()</code>),
-An. gambiae (<code>gamb_params()</code>) and An. stephensi
-(<code>steph_params()</code>)),</li>
-<li>drug interventions including MDA and SMC (<code>set_drugs()</code>,
+<code>arab_params()</code>, An. funestus <code>fun_params()</code>, An.
+gambiae <code>gamb_params()</code> and An. stephensi
+<code>steph_params()</code>,</li>
+<li>drug interventions including MDA and SMC <code>set_drugs()</code>,
 <code>set_clinical_treatment()</code>, <code>set_mda()</code>,
-<code>set_smc()</code>),</li>
-<li>bednet and IRS vector control (<code>set_bednets()</code>,
-<code>set_spraying()</code>),</li>
+<code>set_smc()</code>,</li>
+<li>bednet and IRS vector control <code>set_bednets()</code>,
+<code>set_spraying()</code>,</li>
 <li>pre-erythrocytic and transmission blocking vaccines
-(<code>set_mass_pev()</code>, <code>set_pev_epi()</code>,
-<code>set_tbv()</code>).</li>
+<code>set_mass_pev()</code>, <code>set_pev_epi()</code>,
+<code>set_tbv()</code>.</li>
 </ul>
 <p>Please see the package vignettes for more details on how to use
 these, or ask a demonstrator!</p>
 </div>
 <div id="section-set-equilibrium" class="section level2">
 <h2>2: Set equilibrium</h2>
-<p>Do you remember how we saw default parameters for the initial human
-state proportions and human immunity levels? These may not be applicable
-to the scenario you are trying to simulate (e.g., particularly if you
-are starting with no malaria immunity in a high-transmission
-malaria-endemic area!).</p>
+<p>Do you remember seeing default parameters for the initial human
+disease state proportions and human immunity levels? These may not be
+applicable to the scenario you are trying to simulate (e.g.,
+particularly if you are starting a simulation with no immunity to
+malaria in a high-transmission malaria-endemic area!).</p>
 <p>Luckily, we have a function that sets the initial transmission level
 AND will calculate an equilibrium for that transmissibility level and
 the chosen model parameters: <code>set_equilibrium()</code>. In
@@ -279,7 +284,15 @@ parameters_eq &lt;- set_equilibrium(parameters = parameters, init_EIR = 5)</code
 <div class="tutorial-exercise" data-label="set_eq_check"
 data-completion="1" data-diagnostics="1" data-startover="1"
 data-lines="0" data-pipe="|&gt;">
-<pre class="text"><code>parameters_eq$init_EIR</code></pre>
+<pre class="text"><code>parameters &lt;- get_parameters()
+parameters_eq &lt;- set_equilibrium(parameters = parameters, init_EIR = 5)
+parameters_eq$init_EIR</code></pre>
+<script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
+</div>
+<p>Try setting the initial EIR to 10.</p>
+<div class="tutorial-exercise" data-label="set_eq_exercise"
+data-completion="1" data-diagnostics="1" data-startover="1"
+data-lines="0" data-pipe="|&gt;">
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
 </div>
@@ -328,9 +341,9 @@ head(simulation_output)</code></pre>
 <p>Again, there’s a lot of information that’s being outputted! To
 understand these outputs, we can view the <a
 href="https://mrc-ide.github.io/malariasimulation/reference/run_simulation.html">help
-page</a> (or use <code>?get_parameters()</code> when you are in R to see
+page</a> (or use <code>?run_simulation()</code> when you are in R to see
 the same information).</p>
-<p>Let’s do another quick quiz about these outputs are!</p>
+<p>Let’s do another quick quiz about these outputs!</p>
 <div class="panel-heading tutorial-quiz-title">Outputs Qs</div>
 <div class="panel panel-default tutorial-question-container">
 <div data-label="quiz2-1" class="tutorial-question panel-body">
@@ -363,7 +376,12 @@ variation through time).</p>
 <div class="tutorial-exercise" data-label="malsim_output_vis"
 data-completion="1" data-diagnostics="1" data-startover="1"
 data-lines="0" data-pipe="|&gt;">
-<pre class="text"><code>simulation_output |&gt; 
+<pre class="text"><code>parameters &lt;- get_parameters()
+parameters_eq &lt;- set_equilibrium(parameters = parameters, init_EIR = 5)
+year &lt;- 365
+simulation_output &lt;- run_simulation(timesteps = 10 * year, parameters = parameters_eq)
+
+simulation_output |&gt; 
   select(timestep, paste0(c(&quot;S&quot;,&quot;A&quot;,&quot;D&quot;,&quot;U&quot;,&quot;Tr&quot;), &quot;_count&quot;)) |&gt; 
   pivot_longer(cols = ends_with(&quot;count&quot;), names_to = &quot;human_state&quot;, values_to = &quot;count&quot;) |&gt; 
   ggplot() +
@@ -374,18 +392,18 @@ data-lines="0" data-pipe="|&gt;">
 detectable infections. This is not directly output by the model, so we
 must calculate it! Luckily, the model outputs the number of detectable
 infections and the total number within the defined age group, so it’s
-not too difficult:</p>
+not too difficult.</p>
 <div class="tutorial-exercise" data-label="malsim_output_prev"
 data-completion="1" data-diagnostics="1" data-startover="1"
 data-lines="0" data-pipe="|&gt;">
-<pre class="text"><code>simulation_output$lm_prevalence_730_3650 &lt;- simulation_output$n_detect_730_3650 / simulation_output$n_730_3650</code></pre>
-<script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
-</div>
-<p>… and plot it!</p>
-<div class="tutorial-exercise" data-label="malsim_output_prev_vis"
-data-completion="1" data-diagnostics="1" data-startover="1"
-data-lines="0" data-pipe="|&gt;">
-<pre class="text"><code>ggplot(data = simulation_output) +
+<pre class="text"><code>parameters &lt;- get_parameters()
+parameters_eq &lt;- set_equilibrium(parameters = parameters, init_EIR = 5)
+year &lt;- 365
+simulation_output &lt;- run_simulation(timesteps = 10 * year, parameters = parameters_eq)
+
+simulation_output$lm_prevalence_730_3650 &lt;- simulation_output$n_detect_730_3650 / simulation_output$n_730_3650
+
+ggplot(data = simulation_output) +
   geom_line(aes(x = timestep, y = lm_prevalence_730_3650))</code></pre>
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
@@ -491,7 +509,7 @@ learnr:::store_exercise_cache(structure(list(label = "get_parameters", global_se
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_numeric", label = "quiz-1", question = structure("How many days does an untreated asymptomatic infection last for (A -&gt; U)?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_fe5414a", 
+"character")), answers = list(structure(list(id = "lnr_ans_e7dec85", 
     option = "195", value = 195, label = structure("195", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -501,7 +519,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_numeric", labe
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz-1-answer", question = "quiz-1"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 821545742.617438, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 1826411010.14951, 
     options = list(min = NA, max = NA, step = NA, tolerance = 1.5e-08)), class = c("learnr_numeric", 
 "tutorial_question")), session = session)
 </script>
@@ -509,16 +527,16 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_numeric", labe
 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz-2", question = structure("What is the model’s default mosquito species?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_c3aeb34", 
+"character")), answers = list(structure(list(id = "lnr_ans_3e1ed6e", 
     option = "An. arabiensis", value = "An. arabiensis", label = structure("An. arabiensis", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_e03fa0c", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_4a9633c", 
     option = "An. funestus", value = "An. funestus", label = structure("An. funestus", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_bd90694", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_3e0698e", 
     option = "An. gambiae", value = "An. gambiae", label = structure("An. gambiae", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_385d38d", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_9d4ca55", 
     option = "An. stephensi", value = "An. stephensi", label = structure("An. stephensi", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -528,14 +546,14 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz-2-answer", question = "quiz-2"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 174918755.418547, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 326113594.848142, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_numeric", label = "quiz-3", question = structure("What is the default adult mosquito mortality rate (to 3 dp)?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_c6c4601", 
+"character")), answers = list(structure(list(id = "lnr_ans_9824771", 
     option = "0.132", value = "0.132", label = structure("0.132", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -545,7 +563,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_numeric", labe
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz-3-answer", question = "quiz-3"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 937540177.063424, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 1549815486.27831, 
     options = list(min = NA, max = NA, step = NA, tolerance = 1.5e-08)), class = c("learnr_numeric", 
 "tutorial_question")), session = session)
 </script>
@@ -553,7 +571,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_numeric", labe
 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_numeric", label = "quiz-4", question = structure("What is the default human population size?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_7536054", 
+"character")), answers = list(structure(list(id = "lnr_ans_4c151ba", 
     option = "100", value = "100", label = structure("100", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -563,14 +581,14 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_numeric", labe
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz-4-answer", question = "quiz-4"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 980039571.543633, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 485153202.274083, 
     options = list(min = NA, max = NA, step = NA, tolerance = 1.5e-08)), class = c("learnr_numeric", 
 "tutorial_question")), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_text", label = "quiz-5", question = structure("What is the default mosquito population size?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_1329c48", 
+"character")), answers = list(structure(list(id = "lnr_ans_6e657fa", 
     option = "1000", value = "1000", label = structure("1000", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -580,7 +598,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_text", label =
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz-5-answer", question = "quiz-5"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 1089998047.49243, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 509699836.762653, 
     options = list(placeholder = "Enter answer here...", trim = TRUE)), class = c("learnr_text", 
 "tutorial_question")), session = session)
 </script>
@@ -588,7 +606,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_text", label =
 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_numeric", label = "quiz-6", question = structure("What is the default initial susceptible human state proportion (to 2 dp)?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_c68ccf9", 
+"character")), answers = list(structure(list(id = "lnr_ans_684533d", 
     option = "0.42", value = "0.42", label = structure("0.42", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -598,23 +616,23 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_numeric", labe
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz-6-answer", question = "quiz-6"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 641694508.201188, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 792557306.630937, 
     options = list(min = NA, max = NA, step = NA, tolerance = 1.5e-08)), class = c("learnr_numeric", 
 "tutorial_question")), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz-7", question = structure("How much immunity to malaria does the initial population have?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_d28b8d2", 
+"character")), answers = list(structure(list(id = "lnr_ans_c5719f8", 
     option = "0", value = "0", label = structure("0", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_f3e54e4", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_8b4fe64", 
     option = "2.4", value = "2.4", label = structure("2.4", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_ae40649", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_8a5b8cc", 
     option = "20", value = "20", label = structure("20", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_b670427", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_43aff93", 
     option = "53", value = "53", label = structure("53", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -624,7 +642,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz-7-answer", question = "quiz-7"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 1602450520.2538, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 1568308132.7697, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
@@ -762,7 +780,7 @@ learnr:::store_exercise_cache(structure(list(label = "parameters_alternative", g
 "library(malariasimulation)", "library(dplyr)", "library(ggplot2)", 
 "library(tidyr)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
     label = "setup", include = FALSE)), setup = NULL, chunks = list(
-    list(label = "parameters_alternative", code = "parameters$human_population <- 1000", 
+    list(label = "parameters_alternative", code = "parameters <- get_parameters()\nparameters$human_population <- 1000\nparameters$human_population", 
         opts = list(label = "\"parameters_alternative\"", exercise = "TRUE"), 
         engine = "r")), code_check = NULL, error_check = NULL, 
     check = NULL, solution = NULL, tests = NULL, options = list(
@@ -782,8 +800,9 @@ learnr:::store_exercise_cache(structure(list(label = "parameters_alternative", g
         message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
         engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
         max.print = 1000, label = "parameters_alternative", exercise = TRUE, 
-        code = "parameters$human_population <- 1000", out.width.px = 624, 
-        out.height.px = 384, params.src = "parameters_alternative, exercise=TRUE", 
+        code = c("parameters <- get_parameters()", "parameters$human_population <- 1000", 
+        "parameters$human_population"), out.width.px = 624, out.height.px = 384, 
+        params.src = "parameters_alternative, exercise=TRUE", 
         fig.num = 0, exercise.df_print = "paged", exercise.checker = "NULL"), 
     engine = "r", version = "4"), class = c("r", "tutorial_exercise"
 )))
@@ -843,7 +862,7 @@ learnr:::store_exercise_cache(structure(list(label = "set_eq_check", global_setu
 "library(malariasimulation)", "library(dplyr)", "library(ggplot2)", 
 "library(tidyr)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
     label = "setup", include = FALSE)), setup = NULL, chunks = list(
-    list(label = "set_eq_check", code = "parameters_eq$init_EIR", 
+    list(label = "set_eq_check", code = "parameters <- get_parameters()\nparameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)\nparameters_eq$init_EIR", 
         opts = list(label = "\"set_eq_check\"", exercise = "TRUE"), 
         engine = "r")), code_check = NULL, error_check = NULL, 
     check = NULL, solution = NULL, tests = NULL, options = list(
@@ -863,9 +882,49 @@ learnr:::store_exercise_cache(structure(list(label = "set_eq_check", global_setu
         message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
         engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
         max.print = 1000, label = "set_eq_check", exercise = TRUE, 
-        code = "parameters_eq$init_EIR", out.width.px = 624, 
-        out.height.px = 384, params.src = "set_eq_check, exercise=TRUE", 
-        fig.num = 0, exercise.df_print = "paged", exercise.checker = "NULL"), 
+        code = c("parameters <- get_parameters()", "parameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)", 
+        "parameters_eq$init_EIR"), out.width.px = 624, out.height.px = 384, 
+        params.src = "set_eq_check, exercise=TRUE", fig.num = 0, 
+        exercise.df_print = "paged", exercise.checker = "NULL"), 
+    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
+)))
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-set_eq_exercise-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-set_eq_exercise-code-editor`)), session)
+output$`tutorial-exercise-set_eq_exercise-output` <- renderUI({
+  `tutorial-exercise-set_eq_exercise-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::store_exercise_cache(structure(list(label = "set_eq_exercise", global_setup = structure(c("library(learnr)", 
+"library(malariasimulation)", "library(dplyr)", "library(ggplot2)", 
+"library(tidyr)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
+    label = "setup", include = FALSE)), setup = NULL, chunks = list(
+    list(label = "set_eq_exercise", code = "", opts = list(label = "\"set_eq_exercise\"", 
+        exercise = "TRUE"), engine = "r")), code_check = NULL, 
+    error_check = NULL, check = NULL, solution = NULL, tests = NULL, 
+    options = list(eval = FALSE, echo = TRUE, results = "markup", 
+        tidy = FALSE, tidy.opts = NULL, collapse = FALSE, prompt = FALSE, 
+        comment = NA, highlight = FALSE, size = "normalsize", 
+        background = "#F7F7F7", strip.white = TRUE, cache = 0, 
+        cache.path = "basic_cache/html/", cache.vars = NULL, 
+        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
+        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
+        fig.align = "default", fig.path = "basic_files/figure-html/", 
+        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
+        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
+        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
+        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
+        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
+        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
+        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
+        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
+        max.print = 1000, label = "set_eq_exercise", exercise = TRUE, 
+        code = "", out.width.px = 624, out.height.px = 384, params.src = "set_eq_exercise, exercise=TRUE", 
+        fig.num = 0L, exercise.df_print = "paged", exercise.checker = "NULL"), 
     engine = "r", version = "4"), class = c("r", "tutorial_exercise"
 )))
 </script>
@@ -958,16 +1017,16 @@ learnr:::store_exercise_cache(structure(list(label = "malsim_output", global_set
 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz2-1", question = structure("What units are the age groups of outputs in?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_5a87018", 
+"character")), answers = list(structure(list(id = "lnr_ans_b1858e8", 
     option = "days", value = "days", label = structure("days", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_7afb462", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_1394a29", 
     option = "weeks", value = "weeks", label = structure("weeks", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_3bb9bd6", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_ef3f77b", 
     option = "months", value = "months", label = structure("months", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_210a9fb", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_6f1d672", 
     option = "years", value = "years", label = structure("years", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -977,23 +1036,23 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz2-1-answer", question = "quiz2-1"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 377488611.324218, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 1544876860.78061, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz2-2", question = structure("What is the age-band for the default prevalence outputs?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_ab221b1", 
+"character")), answers = list(structure(list(id = "lnr_ans_54650db", 
     option = "0-5 years", value = "0-5 years", label = structure("0-5 years", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_984e371", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_5e7b845", 
     option = "0.5-5 years", value = "0.5-5 years", label = structure("0.5-5 years", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_80de7f0", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_39c63df", 
     option = "2-10 years", value = "2-10 years", label = structure("2-10 years", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_84afc9c", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_2abd5ba", 
     option = "all ages", value = "all ages", label = structure("all ages", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -1003,7 +1062,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz2-2-answer", question = "quiz2-2"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 223934047.395723, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 308774899.356215, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
@@ -1011,7 +1070,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz2-3", question = structure("What is Tr_count and why is it 0? Check your answer with a demonstrator!", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_b9dfa64", 
+"character")), answers = list(structure(list(id = "lnr_ans_d618643", 
     option = "I'm satisfied that I understand!", value = "I'm satisfied that I understand!", 
     label = structure("I’m satisfied that I understand!", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
@@ -1022,7 +1081,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz2-3-answer", question = "quiz2-3"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = FALSE, seed = 649056852.197759, 
+    random_answer_order = FALSE, allow_retry = FALSE, seed = 2121953863.01189, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
@@ -1040,7 +1099,7 @@ learnr:::store_exercise_cache(structure(list(label = "malsim_output_vis", global
 "library(malariasimulation)", "library(dplyr)", "library(ggplot2)", 
 "library(tidyr)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
     label = "setup", include = FALSE)), setup = NULL, chunks = list(
-    list(label = "malsim_output_vis", code = "simulation_output |> \n  select(timestep, paste0(c(\"S\",\"A\",\"D\",\"U\",\"Tr\"), \"_count\")) |> \n  pivot_longer(cols = ends_with(\"count\"), names_to = \"human_state\", values_to = \"count\") |> \n  ggplot() +\n  geom_line(aes(x = timestep, y = count, color = human_state))\n", 
+    list(label = "malsim_output_vis", code = "parameters <- get_parameters()\nparameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)\nyear <- 365\nsimulation_output <- run_simulation(timesteps = 10 * year, parameters = parameters_eq)\n\nsimulation_output |> \n  select(timestep, paste0(c(\"S\",\"A\",\"D\",\"U\",\"Tr\"), \"_count\")) |> \n  pivot_longer(cols = ends_with(\"count\"), names_to = \"human_state\", values_to = \"count\") |> \n  ggplot() +\n  geom_line(aes(x = timestep, y = count, color = human_state))\n", 
         opts = list(label = "\"malsim_output_vis\"", exercise = "TRUE"), 
         engine = "r")), code_check = NULL, error_check = NULL, 
     check = NULL, solution = NULL, tests = NULL, options = list(
@@ -1060,7 +1119,9 @@ learnr:::store_exercise_cache(structure(list(label = "malsim_output_vis", global
         message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
         engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
         max.print = 1000, label = "malsim_output_vis", exercise = TRUE, 
-        code = c("simulation_output |> ", "  select(timestep, paste0(c(\"S\",\"A\",\"D\",\"U\",\"Tr\"), \"_count\")) |> ", 
+        code = c("parameters <- get_parameters()", "parameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)", 
+        "year <- 365", "simulation_output <- run_simulation(timesteps = 10 * year, parameters = parameters_eq)", 
+        "", "simulation_output |> ", "  select(timestep, paste0(c(\"S\",\"A\",\"D\",\"U\",\"Tr\"), \"_count\")) |> ", 
         "  pivot_longer(cols = ends_with(\"count\"), names_to = \"human_state\", values_to = \"count\") |> ", 
         "  ggplot() +", "  geom_line(aes(x = timestep, y = count, color = human_state))", 
         ""), out.width.px = 624, out.height.px = 384, params.src = "malsim_output_vis, exercise=TRUE", 
@@ -1082,7 +1143,7 @@ learnr:::store_exercise_cache(structure(list(label = "malsim_output_prev", globa
 "library(malariasimulation)", "library(dplyr)", "library(ggplot2)", 
 "library(tidyr)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
     label = "setup", include = FALSE)), setup = NULL, chunks = list(
-    list(label = "malsim_output_prev", code = "simulation_output$lm_prevalence_730_3650 <- simulation_output$n_detect_730_3650 / simulation_output$n_730_3650", 
+    list(label = "malsim_output_prev", code = "parameters <- get_parameters()\nparameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)\nyear <- 365\nsimulation_output <- run_simulation(timesteps = 10 * year, parameters = parameters_eq)\n\nsimulation_output$lm_prevalence_730_3650 <- simulation_output$n_detect_730_3650 / simulation_output$n_730_3650\n\nggplot(data = simulation_output) +\n  geom_line(aes(x = timestep, y = lm_prevalence_730_3650))", 
         opts = list(label = "\"malsim_output_prev\"", exercise = "TRUE"), 
         engine = "r")), code_check = NULL, error_check = NULL, 
     check = NULL, solution = NULL, tests = NULL, options = list(
@@ -1102,48 +1163,11 @@ learnr:::store_exercise_cache(structure(list(label = "malsim_output_prev", globa
         message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
         engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
         max.print = 1000, label = "malsim_output_prev", exercise = TRUE, 
-        code = "simulation_output$lm_prevalence_730_3650 <- simulation_output$n_detect_730_3650 / simulation_output$n_730_3650", 
-        out.width.px = 624, out.height.px = 384, params.src = "malsim_output_prev, exercise=TRUE", 
-        fig.num = 0, exercise.df_print = "paged", exercise.checker = "NULL"), 
-    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
-)))
-</script>
- 
-<script type="application/shiny-prerendered" data-context="server">
-`tutorial-exercise-malsim_output_prev_vis-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-malsim_output_prev_vis-code-editor`)), session)
-output$`tutorial-exercise-malsim_output_prev_vis-output` <- renderUI({
-  `tutorial-exercise-malsim_output_prev_vis-result`()
-})
-</script>
-
-
-<script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "malsim_output_prev_vis", global_setup = structure(c("library(learnr)", 
-"library(malariasimulation)", "library(dplyr)", "library(ggplot2)", 
-"library(tidyr)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
-    label = "setup", include = FALSE)), setup = NULL, chunks = list(
-    list(label = "malsim_output_prev_vis", code = "ggplot(data = simulation_output) +\n  geom_line(aes(x = timestep, y = lm_prevalence_730_3650))", 
-        opts = list(label = "\"malsim_output_prev_vis\"", exercise = "TRUE"), 
-        engine = "r")), code_check = NULL, error_check = NULL, 
-    check = NULL, solution = NULL, tests = NULL, options = list(
-        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
-        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
-        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
-        strip.white = TRUE, cache = 0, cache.path = "basic_cache/html/", 
-        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
-        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
-        fig.show = "asis", fig.align = "default", fig.path = "basic_files/figure-html/", 
-        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
-        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
-        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
-        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
-        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
-        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
-        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
-        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
-        max.print = 1000, label = "malsim_output_prev_vis", exercise = TRUE, 
-        code = c("ggplot(data = simulation_output) +", "  geom_line(aes(x = timestep, y = lm_prevalence_730_3650))"
-        ), out.width.px = 624, out.height.px = 384, params.src = "malsim_output_prev_vis, exercise=TRUE", 
+        code = c("parameters <- get_parameters()", "parameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)", 
+        "year <- 365", "simulation_output <- run_simulation(timesteps = 10 * year, parameters = parameters_eq)", 
+        "", "simulation_output$lm_prevalence_730_3650 <- simulation_output$n_detect_730_3650 / simulation_output$n_730_3650", 
+        "", "ggplot(data = simulation_output) +", "  geom_line(aes(x = timestep, y = lm_prevalence_730_3650))"
+        ), out.width.px = 624, out.height.px = 384, params.src = "malsim_output_prev, exercise=TRUE", 
         fig.num = 0, exercise.df_print = "paged", exercise.checker = "NULL"), 
     engine = "r", version = "4"), class = c("r", "tutorial_exercise"
 )))
@@ -1234,7 +1258,7 @@ learnr:::store_exercise_cache(structure(list(label = "all_together", global_setu
 <!--/html_preserve-->
 <!--html_preserve-->
 <script type="application/shiny-prerendered" data-context="execution_dependencies">
-{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65]}},"value":[{"type":"character","attributes":{},"value":["backports","base","bslib","cachem","checkmate","cli","colorspace","commonmark","compiler","datasets","digest","dplyr","ellipsis","evaluate","fansi","fastmap","fontawesome","generics","ggplot2","glue","graphics","grDevices","grid","gtable","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","later","learnr","lifecycle","magrittr","malariasimulation","markdown","MASS","methods","mime","munsell","pillar","pkgconfig","promises","purrr","R6","Rcpp","rlang","rmarkdown","rprojroot","rstudioapi","sass","scales","shiny","stats","tibble","tidyr","tidyselect","tools","utf8","utils","vctrs","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["1.4.1","4.4.0","0.7.0","1.1.0","2.3.1","3.6.2","2.1-0","1.9.1","4.4.0","4.4.0","0.6.35","1.1.4","0.3.2","0.23","1.0.6","1.2.0","0.5.2","0.1.3","3.5.1","1.7.0","4.4.0","4.4.0","4.4.0","0.3.5","0.5.8.1","1.6.4","1.6.15","0.1.4","1.8.8","1.46","1.3.2","0.11.5","1.0.4","2.0.3","1.6.1","1.12","7.3-60.0.1","4.4.0","0.12","0.5.1","1.9.0","2.0.3","1.3.0","1.0.2","2.5.1","1.0.12","1.1.3","2.27","2.0.4","0.16.0","0.4.9","1.3.0","1.8.1.1","4.4.0","3.2.1","1.3.1","1.2.1","4.4.0","1.2.4","4.4.0","0.6.5","3.0.0","0.44","1.8-4","2.3.8"]}]}]}
+{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65]}},"value":[{"type":"character","attributes":{},"value":["backports","base","bslib","cachem","checkmate","cli","colorspace","commonmark","compiler","datasets","digest","dplyr","ellipsis","evaluate","fansi","fastmap","fontawesome","generics","ggplot2","glue","graphics","grDevices","grid","gtable","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","later","learnr","lifecycle","magrittr","malariasimulation","markdown","MASS","methods","mime","munsell","pillar","pkgconfig","promises","purrr","R6","Rcpp","rlang","rmarkdown","rprojroot","rstudioapi","sass","scales","shiny","stats","tibble","tidyr","tidyselect","tools","utf8","utils","vctrs","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["1.4.1","4.4.0","0.7.0","1.1.0","2.3.1","3.6.2","2.1-0","1.9.1","4.4.0","4.4.0","0.6.35","1.1.4","0.3.2","0.23","1.0.6","1.2.0","0.5.2","0.1.3","3.5.1","1.7.0","4.4.0","4.4.0","4.4.0","0.3.5","0.5.8.1","1.6.4","1.6.15","0.1.4","1.8.8","1.46","1.3.2","0.11.5","1.0.4","2.0.3","1.6.0","1.12","7.3-60.0.1","4.4.0","0.12","0.5.1","1.9.0","2.0.3","1.3.0","1.0.2","2.5.1","1.0.12","1.1.3","2.27","2.0.4","0.16.0","0.4.9","1.3.0","1.8.1.1","4.4.0","3.2.1","1.3.1","1.2.1","4.4.0","1.2.4","4.4.0","0.6.5","3.0.0","0.44","1.8-4","2.3.8"]}]}]}
 </script>
 <!--/html_preserve-->
 </div>
