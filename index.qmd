@@ -1,0 +1,54 @@
+---
+format: html
+from: markdown+emoji
+---
+
+![](presentations/images/malariasimulation_logo.png){fig-align="center" width="40%" height="40%"}
+
+An interactive workshop to provide an overview of how to use :package: \[malariasimulation\] for malaria modelling!
+
+## Workshop details
+
+:spiral_calendar: Tuesday 11th June 2024
+
+:alarm_clock: 0900-1200
+
+:hotel: Room 310, SPH White City
+
+:computer: Please bring your laptop!
+
+## Before the workshop
+
+Please make sure you have the following installed:
+
+1.  An up-to-date (Version \>=4.3.0) [installation of R](https://www.r-project.org/). Please note, for those updating to R version 4.3 and above who have not updated recently you may also require an updated version of [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html).
+2.  An up-to-date (Version \>= 2022.12.0) [installation of RStudio](https://posit.co/download/rstudio-desktop/). See help-\>check for updates.
+3.  :package: \[malariasimulation\]
+4.  The workshop :package: \[malsimtutorial\]
+
+When installing packages please say "yes" to any prompts asking you to update or install dependencies.
+
+```{r, eval=FALSE, echo=TRUE}
+options(repos = c(
+    mrcide = 'https://mrc-ide.r-universe.dev',
+    CRAN = 'https://cloud.r-project.org'))
+install.packages('malariasimulation')
+
+# The workshop package (and its dependencies) can be installed directly from github:
+remotes::install_github("mrc-ide/malsimtutorial")  # v0.1.2
+```
+
+Following installation you should be able to successfully run:
+
+```{r, eval=FALSE, echo=TRUE}
+output <- malariasimulation::run_simulation(100)
+output
+```
+
+and
+
+```{r, eval=FALSE, echo=TRUE}
+mvw::run_tutorial("Test")
+```
+
+If you can't, please contact the organisers *before* the workshop.
