@@ -21,10 +21,11 @@ Now that we know how to set up and run basic simulations using `malariasimulatio
 
 To simulate clinical treatment in malariasimulation, there are four main steps:
 
-1. Load the base set of malariasimulation parameters (`get_parameters()`)
-2. Load parameters for the drug(s) of choice into our list of model parameters (`set_drugs()`)
-3. Specify the clinical treatment coverage for each drug through time (`set_clinical_treatment()`)
-4. Run the simulation (`run_simulation()`) 
+1.  Load the base set of malariasimulation parameters (`get_parameters()`)
+2.  Load parameters for the drug(s) of choice into our list of model parameters (`set_drugs()`)
+3.  Specify the clinical treatment coverage for each drug through time (`set_clinical_treatment()`)
+4.  Tune the parameters to the equilibrial state (`set_equilibrium()`) 
+5.  Run the simulation (`run_simulation()`)
 
 Using these four steps, we can simulate clinical treatment regimes that span from the very simple (single drug at a single coverage level through time) to the quite complex (multiple drugs with time-varying coverages). As we saw earlier, the first step when using malariasimulation is to load a set of parameters using `get_parameters()`:
 
@@ -39,9 +40,9 @@ parameters <- get_parameters(overrides = list(human_population = 1000))
 
 The second step is to load the parameters for the drug(s) we want to simulate into our list of parameters. The `malariasimulation` package has in-built parameter sets for 3 drugs:
 
-1. Artemether lumefantrine (`AL_params`)
-2. Dihydroartemisinin piperaquine (`DHA_PQP_params`)
-3. Sulfadoxine pyrimethamine (`SP_AQ_params`)
+1.  Artemether lumefantrine (`AL_params`)
+2.  Dihydroartemisinin piperaquine (`DHA_PQP_params`)
+3.  Sulfadoxine pyrimethamine (`SP_AQ_params`)
 
 We can view these parameter sets by simply calling them. Here are the parameters for artemether lumefantrine:
 
@@ -54,10 +55,10 @@ AL_params
 
 The parameters in these sets are:
 
-1. drug_efficacy: probability that treatment with the drug successfully clears the infection
-2. drug_rel_c: The onward infectiousness of a treated individual to a mosquito relative to an untreated individual
-3. drug_prophylaxis_shape: Shape parameter for a Weibull distribution describing an individuals prophylactic protection over time following treatment
-4. drug_prophylaxis_scale: Scale parameter for a Weibull distribution describing an individuals prophylactic protection over time following treatment
+1.  drug_efficacy: probability that treatment with the drug successfully clears the infection
+2.  drug_rel_c: The onward infectiousness of a treated individual to a mosquito relative to an untreated individual
+3.  drug_prophylaxis_shape: Shape parameter for a Weibull distribution describing an individuals prophylactic protection over time following treatment
+4.  drug_prophylaxis_scale: Scale parameter for a Weibull distribution describing an individuals prophylactic protection over time following treatment
 
 ```{r view-drug-params, exercise = TRUE}
 
@@ -77,7 +78,7 @@ quiz(
 
 ```
 
-To simulate the use of a drug in `malariasimulation`, we load them into the parameters list. This is done using the `set_drugs()` function. Note that the drug parameters (e.g. `AL_params`) must be passed to `get_drugs()` as a list. 
+To simulate the use of a drug in `malariasimulation`, we load them into the parameters list. This is done using the `set_drugs()` function. Note that the drug parameters (e.g. `AL_params`) must be passed to `get_drugs()` as a list.
 
 ```{r using-set-drugs, exercise = TRUE, eval = TRUE}
 
@@ -92,7 +93,7 @@ parameters$drug_efficacy
 
 ```
 
-The final line of the chunk above shows us how we can view the drug parameters currently loaded the parameters list once they have been appended. When simulating interventions that use antimalarial drugs (e.g. clinical treatment), this can provide a useful check to ensure you have loaded the drug parameters correctly. In the chunk below, view the `drug_rel_c` parameter: 
+The final line of the chunk above shows us how we can view the drug parameters currently loaded the parameters list once they have been appended. When simulating interventions that use antimalarial drugs (e.g. clinical treatment), this can provide a useful check to ensure you have loaded the drug parameters correctly. In the chunk below, view the `drug_rel_c` parameter:
 
 ```{r view-drug-in-params, exercise = TRUE}
 
@@ -108,12 +109,13 @@ parameters <- set_drugs(parameters = parameters, drugs = list(AL_params))
 ```
 
 ## 3. Setting clinical treatment
+
 Now that we know how to load antimalarial drug parameters we can specify how they will be administered to the population. In malariasimulation, we parameterise clinical treatment campaigns using the `set_clinical_treatment()` function (run `?set_clinical_treatment()` to view the help file for the function). `set_clinical_treatment()` requires four arguments:
 
-1. `parameters`: A list of `malariasimulation` parameters (with parameters for drug(s) loaded using `set_drugs()`)
-2. `drug`: The indices of the drug which we are parameterising clinical treatment for
-3. `timesteps`: A vector of timesteps on which we want to update clinical treatment coverage
-4. `coverages`: A vector of clinical treatment coverages (proportion of the clinical infections that will be treated in each timestep).
+1.  `parameters`: A list of `malariasimulation` parameters (with parameters for drug(s) loaded using `set_drugs()`)
+2.  `drug`: The indices of the drug which we are parameterising clinical treatment for
+3.  `timesteps`: A vector of timesteps on which we want to update clinical treatment coverage
+4.  `coverages`: A vector of clinical treatment coverages (proportion of the clinical infections that will be treated in each timestep).
 
 Note that we need to call `set_clinical_treatment()` for each drug that we are specifying clinical treatment for, and that the `timesteps` and `coverage` inputs need to be vectors of equal length, such that each update to the coverage has a corresponding timestep on which the update should take place. The following chunk shows how to set up and run a simulation with clinical treatment:
 
@@ -176,19 +178,19 @@ Awesome, that's all of the basics for running `malariasimulation` simulations wi
 
 The first simulation is a baseline scenario with the following criteria:
 
-1. `human_population` size of 10000
-2. Equilibrate the parameters to an initial EIR of 8 (refer the "basics" tutorial if you need to!)
-3. Run the simulation for 5 years
+1.  `human_population` size of 10000
+2.  Equilibrate the parameters to an initial EIR of 8 (refer the "basics" tutorial if you need to!)
+3.  Run the simulation for 5 years
 
 The second simulation will use what we've learnt to simulate clinical treatment with the following criteria:
 
-1. Set the `human_population` parameter to 10000
-2. Load the parameters for dihydroartemisinin piperaquine (DHA-PQP)
-3. Initiate clinical treatment with a coverage of 0.4 at the end of year 1
-4. Increase the coverage to 0.8 at the end of the third year
-5. Equilibrate the simulations with an initial EIR of 8 
-6. Run both simulations for 5 years
-7. Plot the *Pf*PR[2-10] for each simulation and compare the outputs 
+1.  Set the `human_population` parameter to 10000
+2.  Load the parameters for dihydroartemisinin piperaquine (DHA-PQP)
+3.  Initiate clinical treatment with a coverage of 0.4 at the end of year 1
+4.  Increase the coverage to 0.8 at the end of the third year
+5.  Equilibrate the simulations with an initial EIR of 8
+6.  Run both simulations for 5 years
+7.  Plot the *Pf*PR[2-10] for each simulation and compare the outputs
 
 ```{r final-exercise, exercise=TRUE}
 
