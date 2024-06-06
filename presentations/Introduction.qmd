@@ -1,6 +1,5 @@
 ---
 title: "Malariasimulation Workshop \n Introduction"
-author: "Pete Winskill"
 format:
   revealjs:
     logo: images/malariasimulation_logo.png
@@ -15,7 +14,7 @@ from: markdown+emoji
 Today's aims:
 
 -   Provide a broad overview of malariasimulation
--   Running the model, viewing and plotting model outputs
+-   Learn how to run the model, view and plot model outputs
 -   Introducing interventions
     -   Treatment
     -   Bednets
@@ -31,19 +30,22 @@ Today's aims:
 -   Context-specific modelling
 
 ::: footer
-https://mrc-ide.github.io/malariasimulation 
-https://mrc-ide.github.io/individual 
-https://mrc-ide.github.io/deterministic-malaria-model
+[malariasimulation](https://mrc-ide.github.io/malariasimulation), 
+[individual](https://mrc-ide.github.io/individual), 
+[ODE model](https://mrc-ide.github.io/deterministic-malaria-model)
 :::
 
 ## What is :package:\[malariasimulation\] {.smaller}
 
 Malariasimulation is a [individual-based]{style="color:#F2AF29;"}, [mechanistic]{style="color:#1B998B;"}, [dynamic]{style="color:#984447;"} malaria transmission model.
 
+
   
   [We model each human as an individual in the modelled population]{style="color:#F2AF29;"}
   
+  
   [We try to simulate the actual processes and interactions associated with malaria transmission]{style="color:#1B998B;"}
+  
   
   [Many aspects of the modelled system change over time]{style="color:#984447;"}
   
@@ -73,6 +75,13 @@ Malariasimulation has been extensively fitted and validated against data to capt
 [Griffin et al 2010](https://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.1000324), 
 [Griffin et al 2010](https://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.1000324)
 :::
+
+## Malariasimulation and context specific modelling {.smaller}
+
+-   :package:\[malariasimulation\] is a "generic" _Plasmodium falciparum_ malaria model
+-   Running and exploring model outputs for generic settings is helpful to learn how to run the model, what to expect from the output and how changing parameters influences model results. 
+-   Often, we want to apply the model to a specific setting (e.g. a country, a trial site).
+-   Context specific runs are more complex and require lots of specific input data. We have software pipelines to support this work (contact Pete Winskill for more information).
 
 ## Let's give it a try!
 

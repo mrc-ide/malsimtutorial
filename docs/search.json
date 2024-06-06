@@ -4,14 +4,14 @@
     "href": "presentations/Introduction.html#welcome-all",
     "title": "Malariasimulation Workshop Introduction",
     "section": "Welcome all!",
-    "text": "Welcome all!\nToday’s aims:\n\nProvide a broad overview of malariasimulation\nRunning the model, viewing and plotting model outputs\nIntroducing interventions\n\nTreatment\nBednets\nOther interventions"
+    "text": "Welcome all!\nToday’s aims:\n\nProvide a broad overview of malariasimulation\nLearn how to run the model, view and plot model outputs\nIntroducing interventions\n\nTreatment\nBednets\nOther interventions"
   },
   {
     "objectID": "presentations/Introduction.html#not-todays-aims",
     "href": "presentations/Introduction.html#not-todays-aims",
     "title": "Malariasimulation Workshop Introduction",
     "section": "Not today’s aims 😄",
-    "text": "Not today’s aims 😄\n\nAn introduction to the Imperial college malaria model\n\nPlease see key publications\n\nAn introduction to the software package used to create the model\n\n📦[individual]\nPlease see websites and supporting documentation for help\n\nContext-specific modelling\n\n\nhttps://mrc-ide.github.io/malariasimulation https://mrc-ide.github.io/individual https://mrc-ide.github.io/deterministic-malaria-model"
+    "text": "Not today’s aims 😄\n\nAn introduction to the Imperial college malaria model\n\nPlease see key publications\n\nAn introduction to the software package used to create the model\n\n📦[individual]\nPlease see websites and supporting documentation for help\n\nContext-specific modelling\n\n\nmalariasimulation, individual, ODE model"
   },
   {
     "objectID": "presentations/Introduction.html#what-is-malariasimulation",
@@ -40,6 +40,13 @@
     "title": "Malariasimulation Workshop Introduction",
     "section": "Malariasimulation fitting and validation",
     "text": "Malariasimulation fitting and validation\nMalariasimulation has been extensively fitted and validated against data to capture observed relationships between key metrics and the impact of interventions.\n\n\nGriffin et al 2010, White et al 2011, Griffin et al 2014, Griffin et al 2015, Griffin et al 2010, Griffin et al 2010"
+  },
+  {
+    "objectID": "presentations/Introduction.html#malariasimulation-and-context-specific-modelling",
+    "href": "presentations/Introduction.html#malariasimulation-and-context-specific-modelling",
+    "title": "Malariasimulation Workshop Introduction",
+    "section": "Malariasimulation and context specific modelling",
+    "text": "Malariasimulation and context specific modelling\n\n📦[malariasimulation] is a “generic” Plasmodium falciparum malaria model\nRunning and exploring model outputs for generic settings is helpful to learn how to run the model, what to expect from the output and how changing parameters influences model results.\nOften, we want to apply the model to a specific setting (e.g. a country, a trial site).\nContext specific runs are more complex and require lots of specific input data. We have software pipelines to support this work (contact Pete Winskill for more information)."
   },
   {
     "objectID": "presentations/Introduction.html#lets-give-it-a-try",
