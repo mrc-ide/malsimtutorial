@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 `malariasimulation` in an individual based malaria model. This tutorial is an entry-level guide to using the model package in R.
 
-Use of `malariasimulation` can be divided into four stages:
+Use of `malariasimulation` can be divided into four steps:
 
 
 ![](images/malsim_overview.png){width=100%}
@@ -26,7 +26,7 @@ Use of `malariasimulation` can be divided into four stages:
 We will look at each of these in turn.
 
 
-## 1: Generate parameter set
+## 1: Generate parameters
 
 The key function here is `get_parameters()`
 
@@ -57,16 +57,14 @@ quiz(caption = "Parameters Qs",
      question_numeric("What is the default adult mosquito mortality rate (to 3 dp)?",
                       answer("0.132", correct = TRUE), allow_retry = T, correct = "That's right! The parameter is called `mum`."),
      question_numeric("What is the default human population size?",
-                      answer("100", correct = TRUE), allow_retry = T, correct = "That's right! 100 is really quite a small population, but it's worth bearing in mind that simulations with larger populations take a longer time to run."),
+                      answer("100", correct = TRUE), allow_retry = T, correct = "That's right! 100 is really quite a small population. We advise running the model with a much larger population, but it's worth bearing in mind that simulations with larger populations take a longer time to run."),
      question_text("What is the default mosquito population size?",
                    answer("1000", correct = TRUE), allow_retry = T),
      question_numeric("What is the default initial susceptible human state proportion (to 2 dp)?",
                       answer("0.42", correct = TRUE), allow_retry = T),
-     question("How much immunity to malaria does the initial population have?",
-              answer("0", correct = TRUE),
-              answer("2.4"),
-              answer("20"),
-              answer("53"), allow_retry = T,
+     question("Do the default parameters begin the simulation with any human immunity to disease?",
+              answer("Yes"),
+              answer("No", correct = TRUE), allow_retry = T,
               correct = "That's right! The population begins with no immunity. This isn't realistic for most settings, and we will describe how to adjust this during the tutorial."
      )
 )
@@ -74,13 +72,12 @@ quiz(caption = "Parameters Qs",
 ```
 
 
-Any of these parameters can be adjusted within the `get_parameters()` function using the overrides argument. For example, we can increase the human population size (`human_population`) like this:
+Most of the parameters have been carefully calibrated so will not need adjusting manually, however, any of these parameters *can* be adjusted within the `get_parameters()` function using the overrides argument. For example, one parameter that must be set directly is the human population size (`human_population`), which can be increased like this:
 
 ```{r parameters_override, exercise=TRUE}
-get_parameters(overrides = list(human_population = 1000))
+parameters <- get_parameters(overrides = list(human_population = 1000))
+parameters$human_population
 ```
-
-Most of the parameters have been carefully calibrated so will not need adjusting manually. One exception is the human population size.
 
 Try changing the population size to 250,000 and check that this has updated in the parameter list.
 
@@ -112,16 +109,18 @@ parameters$human_population
 - bednet and IRS vector control `set_bednets()`, `set_spraying()`,
 - pre-erythrocytic and transmission blocking vaccines `set_mass_pev()`, `set_pev_epi()`, `set_tbv()`.
 
-Please see the package vignettes for more details on how to use these, or ask a demonstrator!
+Please see the [package vignettes](https://mrc-ide.github.io/malariasimulation/articles/Model.html) or the function help pages (e.g., `?set_demography()`) for more details on how to use these, or ask a demonstrator!
 
 
 
 
 ## 2: Set equilibrium
 
-Do you remember seeing default parameters for the initial human disease state proportions and human immunity levels? These may not be applicable to the scenario you are trying to simulate (e.g., particularly if you are starting a simulation with no immunity to malaria in a high-transmission malaria-endemic area!).
+The default parameters for the initial human disease state proportions and human immunity levels may not suit the scenario you are simulating. For instance, if you are starting a simulation with no immunity to malaria in a high-transmission area, the default settings won't be appropriate.
 
-Luckily, we have a function that sets the initial transmission level AND will calculate an equilibrium for that transmissibility level and the chosen model parameters: `set_equilibrium()`. In `set_equilibrium()` we define the initial EIR (entomological inoculation rate - is the rate of human biting multiplied by the sporozoite infection rate), which can be varied to reflect the disease prevalence in a region.
+We can use the `set_equilibrium()` function to set the initial transmission level and calculate an equilibrium based on that transmissibility level and your chosen model parameters.
+
+In `set_equilibrium()`, you will define the initial EIR (entomological inoculation rate). The Entomological Inoculation Rate (EIR) is a key metric used in malaria epidemiology. It is defined as the number of infectious bites received by a person per unit of time (our model uses per year for inputs). Adjusting the initial EIR allows you to reflect the disease prevalence in the region you are studying.
 
 ```{r set_eq, exercise=TRUE}
 # Generate parameters
@@ -163,11 +162,14 @@ parameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)
 # Run simulation
 year <- 365
 simulation_output <- run_simulation(timesteps = 10 * year, parameters = parameters_eq)
+
+# Have a look at the raw model output - we'll explore these in the next page!
+head(simulation_output)
 ```
 
 
 
-## 4: Wrangling outputs
+## 4: Process outputs
 
 Now, let's print the output to the screen to take a look:
 
