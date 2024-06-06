@@ -29,13 +29,15 @@ Please make sure you have the following installed:
 When installing packages please say "yes" to any prompts asking you to update or install dependencies.
 
 ```{r, eval=FALSE, echo=TRUE}
-options(repos = c(
+options(
+  repos = c(
     mrcide = 'https://mrc-ide.r-universe.dev',
-    CRAN = 'https://cloud.r-project.org'))
+    CRAN = 'https://cloud.r-project.org')
+)
 install.packages('malariasimulation')
 
-# The workshop package (and its dependencies) can be installed directly from github:
-remotes::install_github("mrc-ide/malsimtutorial")  # v0.1.2
+# The workshop package can be installed directly from github:
+remotes::install_github("mrc-ide/malsimtutorial")
 ```
 
 Following installation you should be able to successfully run:
