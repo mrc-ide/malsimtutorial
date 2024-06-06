@@ -1,6 +1,6 @@
 Package: malsimtutorial
 Title: Run Malariasimulation Tutorials
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: 
     person("Lydia", "Haile", , email = "lhaile@ic.ac.uk", role = c("aut", "cre"))
     person("Tom", "Brewer", email =  "tomas.brewer16@imperial.ac.uk", role = c("aut", "cre"))
@@ -14,5 +14,8 @@ RoxygenNote: 7.3.1
 Depends: 
     R (>= 2.10)
 LazyData: true
+Remotes:
+  mrc-ide/malariasimulation
 Imports: 
-    learnr
+    learnr,
+    malariasimulation
