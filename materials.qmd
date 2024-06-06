@@ -14,6 +14,6 @@ from: markdown+emoji
 
 Workshop practicals are included as part of the :package: \[malsimtutorial\]. They can be accessed using the `run_tutorial()` function.
 
--   `mvw::run_tutorial("Introduction")`
--   `mvw::run_tutorial("TODO")`
--   `mvw::run_tutorial("TODO")`
+-   `malsimtutorial::run_tutorial("Introduction")`
+-   `malsimtutorial::run_tutorial("TODO")`
+-   `malsimtutorial::run_tutorial("TODO")`

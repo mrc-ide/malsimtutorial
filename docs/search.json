@@ -53,7 +53,7 @@
     "href": "presentations/Introduction.html#lets-give-it-a-try",
     "title": "Malariasimulation Workshop Introduction",
     "section": "Let’s give it a try!",
-    "text": "Let’s give it a try!\n\n📦 [malsimtutorial] has interactive tutorials. You can run code within the tutorial window (or in R/Rstudio if desired).\nRun mvw::run_tutorial(\"Introduction\")"
+    "text": "Let’s give it a try!\n\n📦 [malsimtutorial] has interactive tutorials. You can run code within the tutorial window (or in R/Rstudio if desired).\nRun malsimtutorial::run_tutorial(\"Introduction\")"
   },
   {
     "objectID": "inst/tutorials/bednets/bednets.html",
@@ -95,7 +95,7 @@
     "href": "index.html#before-the-workshop",
     "title": "Malariasimulation Workshop",
     "section": "Before the workshop",
-    "text": "Before the workshop\nPlease make sure you have the following installed:\n\nAn up-to-date (Version &gt;=4.3.0) installation of R. Please note, for those updating to R version 4.3 and above who have not updated recently you may also require an updated version of Rtools.\nAn up-to-date (Version &gt;= 2022.12.0) installation of RStudio. See help-&gt;check for updates.\n📦 [malariasimulation]\nThe workshop 📦 [malsimtutorial]\n\nWhen installing packages please say “yes” to any prompts asking you to update or install dependencies.\n\noptions(repos = c(\n    mrcide = 'https://mrc-ide.r-universe.dev',\n    CRAN = 'https://cloud.r-project.org'))\ninstall.packages('malariasimulation')\n\n# The workshop package (and its dependencies) can be installed directly from github:\nremotes::install_github(\"mrc-ide/malsimtutorial\")  # v0.1.2\n\nFollowing installation you should be able to successfully run:\n\noutput &lt;- malariasimulation::run_simulation(100)\noutput\n\nand\n\nmvw::run_tutorial(\"Test\")\n\nIf you can’t, please contact the organisers before the workshop."
+    "text": "Before the workshop\nPlease make sure you have the following installed:\n\nAn up-to-date (Version &gt;=4.3.0) installation of R. Please note, for those updating to R version 4.3 and above who have not updated recently you may also require an updated version of Rtools.\nAn up-to-date (Version &gt;= 2022.12.0) installation of RStudio. See help-&gt;check for updates.\n📦 [malariasimulation]\nThe workshop 📦 [malsimtutorial]\n\nWhen installing packages please say “yes” to any prompts asking you to update or install dependencies.\n\noptions(repos = c(\n    mrcide = 'https://mrc-ide.r-universe.dev',\n    CRAN = 'https://cloud.r-project.org'))\ninstall.packages('malariasimulation')\n\n# The workshop package (and its dependencies) can be installed directly from github:\nremotes::install_github(\"mrc-ide/malsimtutorial\")  # v0.1.2\n\nFollowing installation you should be able to successfully run:\n\noutput &lt;- malariasimulation::run_simulation(100)\noutput\n\nand\n\nmalsimtutorial::run_tutorial(\"Test\")\n\nIf you can’t, please contact the organisers before the workshop."
   },
   {
     "objectID": "inst/tutorials/site_files/site_files.html",
@@ -109,7 +109,7 @@
     "href": "materials.html",
     "title": "📝 Workshop materials 📝",
     "section": "",
-    "text": "Introduction\n\n\n\n\nWorkshop practicals are included as part of the 📦 [malsimtutorial]. They can be accessed using the run_tutorial() function.\n\nmvw::run_tutorial(\"Introduction\")\nmvw::run_tutorial(\"TODO\")\nmvw::run_tutorial(\"TODO\")"
+    "text": "Introduction\n\n\n\n\nWorkshop practicals are included as part of the 📦 [malsimtutorial]. They can be accessed using the run_tutorial() function.\n\nmalsimtutorial::run_tutorial(\"Introduction\")\nmalsimtutorial::run_tutorial(\"TODO\")\nmalsimtutorial::run_tutorial(\"TODO\")"
   },
   {
     "objectID": "materials.html#presentations-associated-with-this-workshop",
@@ -123,6 +123,6 @@
     "href": "materials.html#practicals-associated-with-this-workshop",
     "title": "📝 Workshop materials 📝",
     "section": "",
-    "text": "Workshop practicals are included as part of the 📦 [malsimtutorial]. They can be accessed using the run_tutorial() function.\n\nmvw::run_tutorial(\"Introduction\")\nmvw::run_tutorial(\"TODO\")\nmvw::run_tutorial(\"TODO\")"
+    "text": "Workshop practicals are included as part of the 📦 [malsimtutorial]. They can be accessed using the run_tutorial() function.\n\nmalsimtutorial::run_tutorial(\"Introduction\")\nmalsimtutorial::run_tutorial(\"TODO\")\nmalsimtutorial::run_tutorial(\"TODO\")"
   }
 ]

@@ -86,6 +86,6 @@ Malariasimulation has been extensively fitted and validated against data to capt
 ## Let's give it a try!
 
 -   :package: \[malsimtutorial\] has interactive tutorials. You can run code within the tutorial window (or in R/Rstudio if desired).
--   Run `mvw::run_tutorial("Introduction")`
+-   Run `malsimtutorial::run_tutorial("Introduction")`
 
 

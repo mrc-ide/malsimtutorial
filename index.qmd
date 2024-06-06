@@ -48,7 +48,7 @@ output
 and
 
 ```{r, eval=FALSE, echo=TRUE}
-mvw::run_tutorial("Test")
+malsimtutorial::run_tutorial("Test")
 ```
 
 If you can't, please contact the organisers *before* the workshop.
