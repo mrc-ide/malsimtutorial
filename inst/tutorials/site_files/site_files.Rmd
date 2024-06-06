@@ -6,17 +6,333 @@ runtime: shiny_prerendered
 
 ```{r setup, include=FALSE}
 library(learnr)
+library(malsimtutorial)
+library(malariasimulation)
+library(site)
+library(scene)
+library(ggplot2)
+library(data.table)
+library(dplyr)
+
+head(malsimtutorial::COD$sites)
 knitr::opts_chunk$set(echo = FALSE)
+extract<- function(site_file, site_name, ur){
+  sites<- data.table::data.table(site_file$sites)
+  
+  index_site <- sites[name_1== site_name & urban_rural== ur]
+
+  to_mod <- c("sites", "interventions", "pyrethroid_resistance", "population",
+              "vectors", "seasonality", "prevalence", "eir")
+  
+  site <- site_file
+  for(level in to_mod){
+    mod<- site[[level]]
+    mc <- intersect(colnames(index_site), colnames(mod))
+    site[[level]] <- dplyr::left_join(index_site, mod, by = mc)
+  }
+  return(site)
+}
+
+ituri_site<- extract(site_file = malsimtutorial::COD,
+                       site_name = 'Ituri',
+                       ur= 'rural')
+
+kinshasa_site<- extract(site_file = malsimtutorial::COD,
+                       site_name = 'Kinshasa',
+                       ur= 'urban')
+```
+
+## What is a site file? 
+*malariasimulation* can be used to model specific contexts (IE, a specific admin-1 unit or country). This is facilitated by a *site file*, which characterizes the aspects of an admin-1 unit relevant to malaria modelling.
+
+### Components of a site file
+
+A site file contains the following components: 
+
+- Prevalence information (**prevalence**)
+- Cases and deaths from the Malaria Atlas Project (**cases_deaths**)
+- A list of the sites available (**sites**)
+- Coverage of interventions (**interventions**)
+- Demography (**population** and **demography**)
+- Info on the **vectors**, **seasonality**, and **pyrethroid resistance** levels of a site
+  
+
+For more information on the components of a site file and relevant data sources, refer to the foresite package website: https://mrc-ide.github.io/foresite/. Also note that newer site files with more up-to-date data are incoming!
+
+
+## 1:  Examine a site file
+For the purposes of our tutorial today, we will look at the site file for the Democratic Republic of Congo. Let's see how many sites are contained within this site file:
+
+```{r load_a_site_file, exercise = TRUE}
+
+test_site<- malsimtutorial::COD
+
+
+test_site$sites
+
+```
+
+Prevalence data can be found in the *prevalence* component of a site file:
+
+```{r prevalence, exercise = TRUE}
+
+test_site<- malsimtutorial::COD
+test_site$prevalence
+
+```
+
+In a similar vein, you can find info on intervention coverage, cases + deaths, seasonality, and vectors accordingly:
+
+```{r other_components, exercise = TRUE}
+
+test_site<- malsimtutorial::COD
+test_site$vectors
+test_site$seasonality
+test_site$cases_deaths
+test_site$interventions
+
+```
+
+You can use the *scene* package to visualize certain aspects of a site file, including intervention coverage:
+
+```{r intervention_coverage, exercise = TRUE}
+test_site<- malsimtutorial::COD
+
+scene::plot_interventions(
+    interventions = test_site$interventions,
+    population = test_site$population,
+    group_var = c("country", "name_1"),
+    include = c("itn_use", "itn_input_dist", "tx_cov", "smc_cov",'irs_cov', "pmc_cov", "rtss_cov"),
+    labels = c("ITN usage", "ITN model input", "Treatment","SMC", "IRS", "PMC", "RTSS")
+  )
+
+
 ```
 
 
-malariasimulation can be used to model specific contexts (IE, a specific admin-1 unit or country). This is facilitated by a *site file*, which is a file that characterizes different admin units an a malaria-endemic country.  
+Explore the different aspects of this site file to answer the following questions.
 
 
-
-
-```{r test_setup, exercise = TRUE}
-
-
-message('this is a message')
+```{r quiz}
+quiz(
+  question("What is the PfPr prevalence in Ituri, urban_rural = rural in 2008?",
+           answer("0.53"),
+           answer("0.578"),
+           answer("0.6786045", correct = TRUE),
+           answer("0.89")
+  ),
+  question("What is the dominant vector species in iso3c = COD, name_1 = Bas-Uele?",
+           answer("arabiensis"),
+           answer("funestus"),
+           answer("gambiae", correct = TRUE)
+  ),
+  question("Did the World Malaria Report estimate a rise or fall in malaria cases in the Congo 
+           between 2019 and 2020",
+           answer("Rise", correct = TRUE),
+           answer("Fall")
+  ),
+  question("What is the p. falciparum entomological inoculation rate (EIR) for Lomami, rural? 
+           between 2019 and 2020",
+           answer("98.217189", correct = TRUE),
+           answer("54.21"),
+           answer("93.4")
+  )
+)
 ```
+
+
+## 2: Run a model for one site
+We can extract one site from the COD site file and run a test model with the help of the *site* package. The site package helps translate the components of a site file into input parameters for malariasimulation.
+
+Now that you have run a model of this site, it may be helpful to process and visualize certain outputs. Some key model outputs include incidence and parasite prevalence.
+
+First, we will calculate modelled parasite prevalence, and plot this against prevalence data from the Malaria Atlas Project.
+
+We may also want to calculate incidence from model outputs. The *postie* package can be used to calculate incidence and mortality rates from malariasimulation model output. 
+
+
+```{r run_a_test, exercise = TRUE, exercise.timelimit=1800}
+# extract one site
+example_site<- ituri_site
+
+# Create parameter inputs
+site_pars <- site::site_parameters(
+  interventions = example_site$interventions,
+  demography = example_site$demography,
+  vectors = example_site$vectors,
+  seasonality = example_site$seasonality,
+  eir = example_site$eir$eir[1],
+  overrides = list(human_population = 1000)
+)
+
+# Run!
+model_run <- malariasimulation::run_simulation(timesteps = site_pars$timesteps,
+                                               parameters = site_pars)
+
+# Visualize model output dataset
+head(model_run)
+
+
+# Process outputs
+# Calculate prevalence
+model_run$prevalence <- model_run$n_detect_730_3649 / model_run$n_730_3649
+
+# Set the time
+model_run$t <- (model_run$timestep / 365) + 2000
+
+# Plot
+plot(model_run$prevalence ~ model_run$t, t = "l", ylim = c(0, 0.8), xlab = "Year", ylab = "Prevalence")
+
+# Add MAP prevalence
+points(example_site$prevalence$year + 0.5, example_site$prevalence$pfpr, pch = 19, col = "darkred")
+
+# Calculate incidence and mortality rates
+output <- postie::get_rates(
+    model_run,
+    time_divisor = 365, # meaning you would like to summarize results in 1-year age bands
+    baseline_t = 1999,  # baseline year of simulation run (year 1 is 2000)
+    age_divisor = 365  # meaning you would like to summarize results in 1-year age groups
+  )
+
+# Plot incidence over time + age
+ggplot(data = output, mapping = aes(x= t, y= clinical, group = age_lower)) +
+  facet_wrap(~age_lower) +
+  geom_line() +
+  labs(title = 'Ituri clinical incidence by age group over time',
+       x= 'Year',
+       y= 'Clinical incidence rate') 
+
+
+# Plot mortality over time + age
+ggplot(data = output, mapping = aes(x= t, y= mortality)) +
+  facet_wrap(~age_lower) +
+  geom_line() +
+  labs(title = 'Ituri mortality by age group over time',
+       x = 'Year',
+       y= 'Mortality rate')
+```
+
+## 3: Model a site on your own
+
+As a test, carry out the following:
+
+1: Extract the site Kinshasa, urban from the COD site file. This site is saved as "Kinshasa site" in your local environment.
+2: Parameterize and run a model for this site through 2020.
+3: Plot modelled PFPR against prevalence from the Malaria Atlas Project.
+4: Plot modelled clinical incidence by age group over time.
+
+
+```{r work_space, exercise = TRUE, exercise.timelimit=1800}
+
+
+```
+
+Use your outputs to answer the following questions:
+
+```{r quiz_2}
+quiz(
+  question("What is Malaria Atlas Project prevalence for Kinshasa in 2015?",
+           answer("0.30142809"),
+           answer("0.19528634", correct = TRUE),
+           answer("0.14570321"),
+           answer("0.53901244")
+  ),
+    question("Does the site file indicate that SMC was administered in Kinshasa between 2000-2020?",
+           answer("No", correct = TRUE),
+           answer("Yes")
+  ),
+  question("Does modelled prevalence for Kinshasa indicate a rise or fall in PFPR over time?",
+           answer("Rise"),
+           answer("Fall", correct = TRUE)
+  ),
+  question("What is the estimated clinical incidence for 0-5 year olds in Kinshasa in 2008?",
+           answer("0.75", correct = TRUE),
+           answer("0.60"),
+           answer("0.90")
+  )
+)
+```
+## 4: Run a model for a future scenario
+
+It can be useful to use a site file to model future scenarios, such as the introduction of a new intervention. The *scene* package can be used to facilitate scenario modelling.
+
+Here we will model Ituri, rural through 2030, with the introduction of IRS spraying in 2024:
+
+```{r model_a_scenario, exercise = TRUE, exercise.timelimit=1800}
+
+new_scenario <- ituri_site
+group_var <- names(new_scenario$sites)
+
+
+# Expand interventions data frame through 2030
+new_scenario$interventions <- new_scenario$interventions |>
+  scene::expand_interventions(max_year = 2030, group_var = group_var)
+
+# Add a target IRS coverage of 40% in 2024
+new_scenario$interventions <- new_scenario$interventions |>
+  scene::set_change_point(sites = new_scenario$sites, var = "irs_cov", year = 2024, target = 0.4) |>
+  scene::fill_extrapolate(group_var = group_var) |> #carry over previous value into the future
+  scene::add_future_net_dist(group_var = group_var) # fit future ITN distribution-- note that this involves specific assumptions, refer to the netz package for more information
+
+# plot new intervention coverage
+scene::plot_interventions(
+    interventions = new_scenario$interventions,
+    population = new_scenario$population,
+    group_var = c("country", "name_1"),
+    include = c("itn_use", "itn_input_dist", "tx_cov", "smc_cov",'irs_cov', "pmc_cov", "rtss_cov"),
+    labels = c("ITN usage", "ITN model input", "Treatment","SMC", "IRS", "PMC", "RTSS")
+  )
+
+
+# Model this scenario
+# Create parameter inputs
+pars <- site::site_parameters(
+  interventions = new_scenario$interventions,
+  demography = new_scenario$demography,
+  vectors = new_scenario$vectors,
+  seasonality = new_scenario$seasonality,
+  eir = new_scenario$eir$eir[1],
+  overrides = list(human_population = 1000)
+)
+
+# Run!
+model_run <- malariasimulation::run_simulation(timesteps = pars$timesteps,
+                                               parameters = pars)
+
+# Postprocess and plot
+output <- postie::get_rates(
+    model_run,
+    time_divisor = 365, # meaning you would like to summarize results in 1-year age bands
+    baseline_t = 1999,  # baseline year of simulation run (year 1 is 2000)
+    age_divisor = 365  # meaning you would like to summarize results in 1-year age groups
+  )
+
+
+# Plot incidence over time + age
+ggplot(data = output, mapping = aes(x= t, y= clinical, group = age_lower)) +
+  facet_wrap(~age_lower) +
+    geom_line() +
+  geom_vline(xintercept = 2024, linetype = 'dotted') +
+  labs(title = 'Ituri clinical incidence by age group over time',
+       x= 'Year',
+       y= 'Clinical incidence rate') 
+``` 
+
+Note that whenever a future scenario is parameterized, future insecticide treated net (ITN) distributions will need to be modelled based on usage data using the netz [package](https://mrc-ide.github.io/netz/). 
+
+
+## 5: Model a future scenario on your own
+
+If you have time:
+
+1: Model the introduction of RTS,S in Kinshasa, urban in the year 2024, with the simulation running until 2030.
+2: Plot incidence in 0-5 year olds over the model period.
+3: Run a scenario where RTS,S is not introduced, and plot incidence in 0-5 year olds to compare. 
+
+
+```{r space_to_work, exercise = TRUE}
+
+
+
+``` 
+
