@@ -9,6 +9,8 @@ website:
     left:
       - text: "Home"
         file: index.qmd
+      - text: "Workshop materials"
+        file: materials.qmd
   page-footer:
     left: "This workshop was created with ❤️, [Learnr](https://rstudio.github.io/learnr/) and [Quarto](https://quarto.org/) by Lydia Haile, Richard Sheppard, Tom Brewer & Pete Winskill."
 

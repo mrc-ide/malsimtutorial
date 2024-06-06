@@ -20,40 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 </style>
 
 
@@ -126,11 +92,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link" href="./index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./materials.html"> 
+    <a class="nav-link active" href="./materials.html" aria-current="page"> 
 <span class="menu-text">Workshop materials</span></a>
   </li>  
 </ul>
@@ -149,8 +115,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#workshop-details" id="toc-workshop-details" class="nav-link active" data-scroll-target="#workshop-details">Workshop details</a></li>
-  <li><a href="#before-the-workshop" id="toc-before-the-workshop" class="nav-link" data-scroll-target="#before-the-workshop">Before the workshop</a></li>
+  <li><a href="#workshop-materials" id="toc-workshop-materials" class="nav-link active" data-scroll-target="#workshop-materials"><span class="emoji" data-emoji="pencil">📝</span> Workshop materials <span class="emoji" data-emoji="pencil">📝</span></a>
+  <ul class="collapse">
+  <li><a href="#presentations-associated-with-this-workshop" id="toc-presentations-associated-with-this-workshop" class="nav-link" data-scroll-target="#presentations-associated-with-this-workshop">Presentations associated with this workshop</a></li>
+  <li><a href="#practicals-associated-with-this-workshop" id="toc-practicals-associated-with-this-workshop" class="nav-link" data-scroll-target="#practicals-associated-with-this-workshop">Practicals associated with this workshop</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -160,50 +129,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="presentations/images/malariasimulation_logo.png" class="quarto-figure quarto-figure-center figure-img" style="width:40.0%;height:40.0%"></p>
-</figure>
-</div>
-<p>An interactive workshop to provide an overview of how to use <span class="emoji" data-emoji="package">📦</span> [malariasimulation] for malaria modelling!</p>
-<section id="workshop-details" class="level2">
-<h2 class="anchored" data-anchor-id="workshop-details">Workshop details</h2>
-<p><span class="emoji" data-emoji="spiral_calendar">🗓️</span> Tuesday 11th June 2024</p>
-<p><span class="emoji" data-emoji="alarm_clock">⏰</span> 0900-1200</p>
-<p><span class="emoji" data-emoji="hotel">🏨</span> Room 310, SPH White City</p>
-<p><span class="emoji" data-emoji="computer">💻</span> Please bring your laptop!</p>
+<section id="workshop-materials" class="level1">
+<h1><span class="emoji" data-emoji="pencil">📝</span> Workshop materials <span class="emoji" data-emoji="pencil">📝</span></h1>
+<section id="presentations-associated-with-this-workshop" class="level2">
+<h2 class="anchored" data-anchor-id="presentations-associated-with-this-workshop">Presentations associated with this workshop</h2>
+<ul>
+<li><a href="https://mrc-ide.github.io/malsimtutorial/presentations/Introduction.html">Introduction</a></li>
+</ul>
 </section>
-<section id="before-the-workshop" class="level2">
-<h2 class="anchored" data-anchor-id="before-the-workshop">Before the workshop</h2>
-<p>Please make sure you have the following installed:</p>
-<ol type="1">
-<li>An up-to-date (Version &gt;=4.3.0) <a href="https://www.r-project.org/">installation of R</a>. Please note, for those updating to R version 4.3 and above who have not updated recently you may also require an updated version of <a href="https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html">Rtools</a>.</li>
-<li>An up-to-date (Version &gt;= 2022.12.0) <a href="https://posit.co/download/rstudio-desktop/">installation of RStudio</a>. See help-&gt;check for updates.</li>
-<li><span class="emoji" data-emoji="package">📦</span> [malariasimulation]</li>
-<li>The workshop <span class="emoji" data-emoji="package">📦</span> [malsimtutorial]</li>
-</ol>
-<p>When installing packages please say “yes” to any prompts asking you to update or install dependencies.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repos =</span> <span class="fu">c</span>(</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">mrcide =</span> <span class="st">'https://mrc-ide.r-universe.dev'</span>,</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">CRAN =</span> <span class="st">'https://cloud.r-project.org'</span>))</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">'malariasimulation'</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># The workshop package (and its dependencies) can be installed directly from github:</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"mrc-ide/malsimtutorial"</span>)  <span class="co"># v0.1.2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>Following installation you should be able to successfully run:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>output <span class="ot">&lt;-</span> malariasimulation<span class="sc">::</span><span class="fu">run_simulation</span>(<span class="dv">100</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>output</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>and</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>mvw<span class="sc">::</span><span class="fu">run_tutorial</span>(<span class="st">"Test"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>If you can’t, please contact the organisers <em>before</em> the workshop.</p>
+<section id="practicals-associated-with-this-workshop" class="level2">
+<h2 class="anchored" data-anchor-id="practicals-associated-with-this-workshop">Practicals associated with this workshop</h2>
+<p>Workshop practicals are included as part of the <span class="emoji" data-emoji="package">📦</span> [malsimtutorial]. They can be accessed using the <code>run_tutorial()</code> function.</p>
+<ul>
+<li><code>mvw::run_tutorial("Introduction")</code></li>
+<li><code>mvw::run_tutorial("TODO")</code></li>
+<li><code>mvw::run_tutorial("TODO")</code></li>
+</ul>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

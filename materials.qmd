@@ -1,0 +1,19 @@
+---
+format: html
+from: markdown+emoji
+---
+
+# :pencil: Workshop materials :pencil:
+
+## Presentations associated with this workshop
+
+-   [Introduction](https://mrc-ide.github.io/malsimtutorial/presentations/Introduction.html)
+
+
+## Practicals associated with this workshop
+
+Workshop practicals are included as part of the :package: \[malsimtutorial\]. They can be accessed using the `run_tutorial()` function.
+
+-   `mvw::run_tutorial("Introduction")`
+-   `mvw::run_tutorial("TODO")`
+-   `mvw::run_tutorial("TODO")`
