@@ -1,0 +1,267 @@
+---
+title: "malariasimulation: an introductory tutorial"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(malariasimulation)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+# `malariasimulation` overview
+
+`malariasimulation` in an individual based malaria model. This tutorial is an entry-level guide to using the model package in R.
+
+Use of `malariasimulation` can be divided into four steps:
+
+
+![](images/malsim_overview.png){width=100%}
+
+We will look at each of these in turn.
+
+
+## 1: Generate parameters
+
+The key function here is `get_parameters()`
+
+Try running it to see what it generates.
+
+```{r get_parameters, exercise=TRUE}
+get_parameters()
+```
+
+You should see a long list of parameters - it's a complicated model!
+
+To understand what each parameter does in the model, you can go to the [help page](https://mrc-ide.github.io/malariasimulation/reference/get_parameters.html) (or use `?get_parameters()` when you are in R to see the same information).
+
+
+Please don't try to understand all of these right now! Instead, use the help page to try answering the questions below for now, and if there are any parameters you'd like to know more about, feel free to ask a demonstrator.
+
+
+```{r quiz}
+quiz(caption = "Parameters Qs",
+     question_numeric(
+       "How many days does an untreated asymptomatic infection last for (A -> U)?",
+       answer(195, correct = TRUE), allow_retry = T, correct = ("That's right! On average, asymptomatic infections last for 195 days before they become sub-patent infections.")),
+     question("What is the model's default mosquito species?",
+              answer("An. arabiensis"),
+              answer("An. funestus"),
+              answer("An. gambiae", correct = TRUE),
+              answer("An. stephensi"), allow_retry = T),
+     question_numeric("What is the default adult mosquito mortality rate (to 3 dp)?",
+                      answer("0.132", correct = TRUE), allow_retry = T, correct = "That's right! The parameter is called `mum`."),
+     question_numeric("What is the default human population size?",
+                      answer("100", correct = TRUE), allow_retry = T, correct = "That's right! 100 is really quite a small population. We advise running the model with a much larger population, but it's worth bearing in mind that simulations with larger populations take a longer time to run."),
+     question_text("What is the default mosquito population size?",
+                   answer("1000", correct = TRUE), allow_retry = T),
+     question_numeric("What is the default initial susceptible human state proportion (to 2 dp)?",
+                      answer("0.42", correct = TRUE), allow_retry = T),
+     question("Do the default parameters begin the simulation with any human immunity to disease?",
+              answer("Yes"),
+              answer("No", correct = TRUE), allow_retry = T,
+              correct = "That's right! The population begins with no immunity. This isn't realistic for most settings, and we will describe how to adjust this during the tutorial."
+     )
+)
+
+```
+
+
+Most of the parameters have been carefully calibrated so will not need adjusting manually, however, any of these parameters *can* be adjusted within the `get_parameters()` function using the overrides argument. For example, one parameter that must be set directly is the human population size (`human_population`), which can be increased like this:
+
+```{r parameters_override, exercise=TRUE}
+parameters <- get_parameters(overrides = list(human_population = 1000))
+parameters$human_population
+```
+
+Try changing the population size to 250,000 and check that this has updated in the parameter list.
+
+```{r parameters_override_check, exercise=TRUE}
+
+```
+
+
+We generally store a parameter set in an object for future use like so:
+
+```{r parameters_store, exercise=TRUE}
+parameters <- get_parameters()
+```
+
+By so doing, we can also adjust individual parameters manually outside of the `get_parameters()` function.
+
+```{r parameters_alternative, exercise=TRUE}
+parameters <- get_parameters()
+parameters$human_population <- 1000
+parameters$human_population
+```
+
+
+`malariasimulation` also contains various helper functions and in-built parameters to help you design your parameter set. We will not cover these in detail here, but they include setting:
+
+- population demographies `set_demography()`,
+- mosquito species and proportions `set_species()`, with in-built species specific parameter sets: An. arabiensis `arab_params()`, An. funestus `fun_params()`, An. gambiae `gamb_params()` and An. stephensi `steph_params()`,
+- drug interventions including MDA and SMC `set_drugs()`, `set_clinical_treatment()`, `set_mda()`, `set_smc()`,
+- bednet and IRS vector control `set_bednets()`, `set_spraying()`,
+- pre-erythrocytic and transmission blocking vaccines `set_mass_pev()`, `set_pev_epi()`, `set_tbv()`.
+
+Please see the [package vignettes](https://mrc-ide.github.io/malariasimulation/articles/Model.html) or the function help pages (e.g., `?set_demography()`) for more details on how to use these, or ask a demonstrator!
+
+
+
+
+## 2: Set equilibrium
+
+The default parameters for the initial human disease state proportions and human immunity levels may not suit the scenario you are simulating. For instance, if you are starting a simulation with no immunity to malaria in a high-transmission area, the default settings won't be appropriate.
+
+We can use the `set_equilibrium()` function to set the initial transmission level and calculate an equilibrium based on that transmissibility level and your chosen model parameters.
+
+In `set_equilibrium()`, you will define the initial EIR (entomological inoculation rate). The Entomological Inoculation Rate (EIR) is a key metric used in malaria epidemiology. It is defined as the number of infectious bites received by a person per unit of time (our model uses per year for inputs). Adjusting the initial EIR allows you to reflect the disease prevalence in the region you are studying.
+
+```{r set_eq, exercise=TRUE}
+# Generate parameters
+parameters <- get_parameters()
+
+# Set equilibrium
+parameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)
+```
+
+Note that the parameters list now contains a new element called `init_EIR`:
+
+```{r set_eq_check, exercise=TRUE}
+parameters <- get_parameters()
+parameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)
+parameters_eq$init_EIR
+```
+
+Try setting the initial EIR to 10.
+
+```{r set_eq_exercise, exercise=TRUE}
+
+```
+
+
+
+## 3: Run simulation
+
+Once the parameters have been set, we can run a simulation.
+
+The main simulation function is `run_simulation()`, which requires the parameter set and the number of timesteps in days you would like to run the simulation for. It can be helpful to define what a year is!
+
+```{r run_sim, exercise=TRUE}
+# Generate parameters
+parameters <- get_parameters()
+
+# Set equilibrium
+parameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)
+
+# Run simulation
+year <- 365
+simulation_output <- run_simulation(timesteps = 10 * year, parameters = parameters_eq)
+
+# Have a look at the raw model output - we'll explore these in the next page!
+head(simulation_output)
+```
+
+
+
+## 4: Process outputs
+
+Now, let's print the output to the screen to take a look:
+
+```{r malsim_output, exercise=TRUE}
+# Generate parameters
+parameters <- get_parameters()
+
+# Set equilibrium
+parameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)
+
+# Run simulation
+year <- 365
+simulation_output <- run_simulation(timesteps = 10 * year, parameters = parameters_eq)
+
+# Look at simulation outputs
+head(simulation_output)
+```
+
+Again, there's a lot of information that's being outputted! To understand these outputs, we can view the [help page](https://mrc-ide.github.io/malariasimulation/reference/run_simulation.html) (or use `?run_simulation()` when you are in R to see the same information).
+
+Let's do another quick quiz about these outputs!
+
+```{r quiz2}
+quiz(caption = "Outputs Qs",
+     question("What units are the age groups of outputs in?",
+              answer("days", correct = TRUE), correct = "That's right! This means we need to convert the ages into years by dividing by 365 to make sense of them.",
+              answer("weeks"),
+              answer("months"),
+              answer("years"), allow_retry = T),
+     question("What is the age-band for the default prevalence outputs?",
+              answer("0-5 years"),
+              answer("0.5-5 years"),
+              answer("2-10 years", correct = TRUE),
+              answer("all ages"), allow_retry = T, correct = "That's right! These age brackets can be changed with the `prevalence_rendering_min_ages` and `prevalence_rendering_max_ages` parameters."),
+     question("What is Tr_count and why is it 0? Check your answer with a demonstrator!",
+              answer("I'm satisfied that I understand!", correct = T), correct = "That's right! Tr represents the number of treated individuals, but because we haven't set any clinical treatment interventions yet no one has been treated.")
+)
+
+```
+
+
+Let's now create a simple plot to visualise the human states.
+The human states should be maintained approximately at their equilibrium (remember, the model is stochastic, so there will be some "random" variation through time).
+
+```{r malsim_output_vis, exercise=TRUE}
+parameters <- get_parameters()
+parameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)
+year <- 365
+simulation_output <- run_simulation(timesteps = 10 * year, parameters = parameters_eq)
+
+simulation_output |> 
+  select(timestep, paste0(c("S","A","D","U","Tr"), "_count")) |> 
+  pivot_longer(cols = ends_with("count"), names_to = "human_state", values_to = "count") |> 
+  ggplot() +
+  geom_line(aes(x = timestep, y = count, color = human_state))
+
+```
+
+One of our key outputs is the prevalence of light-microscopy detectable infections.
+This is not directly output by the model, so we must calculate it! Luckily, the model outputs the number of detectable infections and the total number within the defined age group, so it's not too difficult.
+
+```{r malsim_output_prev, exercise=TRUE}
+parameters <- get_parameters()
+parameters_eq <- set_equilibrium(parameters = parameters, init_EIR = 5)
+year <- 365
+simulation_output <- run_simulation(timesteps = 10 * year, parameters = parameters_eq)
+
+simulation_output$lm_prevalence_730_3650 <- simulation_output$n_detect_730_3650 / simulation_output$n_730_3650
+
+ggplot(data = simulation_output) +
+  geom_line(aes(x = timestep, y = lm_prevalence_730_3650))
+```
+
+
+BONUS TASK: run a simulation using the default parameter set (before equilibrium) and plot the human states. Can you see how the human states drift? What do you think are the mechanistic causes of these patterns in the model?
+
+```{r malsim_output_bonus, exercise=TRUE}
+
+```
+
+
+## 5: Putting it all together
+
+Well done! We've covered all the content in the basic tutorial. Before we move on, let's try to put everything we've learned together!
+
+- Generate two different parameter sets with population sizes of 50 and 500.
+- Run simulations of 1000 timesteps for each parameter set.
+- Plot the light-microscopy detectable prevalence of 2-10 year olds through time.
+- What differences do you see in prevalence between the two simulations?
+- How can we explain these differences?
+
+
+```{r all_together, exercise=TRUE}
+
+```

@@ -17,5 +17,8 @@ LazyData: true
 Remotes:
   mrc-ide/malariasimulation
 Imports: 
+    dplyr,
+    ggplot2,
     learnr,
-    malariasimulation
+    malariasimulation,
+    tidyr
