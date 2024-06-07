@@ -72,12 +72,14 @@ quiz(caption = "Parameters Qs",
               answer("365"),
               answer("0.533", correct = TRUE),
               answer("0.24"),
-              answer("0"), allow_retry = T),
+              answer("0"), 
+              allow_retry = TRUE),
      question("How many columns must the matrix inputs for dn0, rn, and rnm contain if we specify bed net events to be updated 5 times (i.e. we want parameters to be updated on 5 timesteps)?",
               answer("3"),
               answer("It depends on the number of mosquito species"),
               answer("1"),
-              answer("5", correct = TRUE))
+              answer("5", correct = TRUE), 
+              allow_retry = TRUE)
 )
 
 ```
