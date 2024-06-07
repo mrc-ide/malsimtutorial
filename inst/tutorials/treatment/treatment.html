@@ -139,7 +139,7 @@ through time) to the quite complex (multiple drugs with time-varying
 coverages).</p>
 <div id="section-loading-antimalarial-drug-parameters"
 class="section level2">
-<h2>2. Loading antimalarial drug parameters</h2>
+<h2>1. Loading antimalarial drug parameters</h2>
 <p>As we saw earlier, the first step when using malariasimulation is to
 load a set of parameters using <code>get_parameters()</code>:</p>
 <div class="tutorial-exercise" data-label="load-malsim-parameters"
@@ -267,7 +267,7 @@ parameters &lt;- set_drugs(parameters = parameters, drugs = list(DHA_PQP_params)
 </div>
 </div>
 <div id="section-setting-clinical-treatment" class="section level2">
-<h2>3. Setting clinical treatment</h2>
+<h2>2. Setting clinical treatment</h2>
 <p>Now that we know how to load antimalarial drug parameters we can
 specify how they will be administered to the population. In
 malariasimulation, we parameterise clinical treatment using the
@@ -350,7 +350,7 @@ clinical_treatment_simulation |&gt;
 </div>
 </div>
 <div id="section-putting-it-all-together" class="section level2">
-<h2>4: Putting it all together</h2>
+<h2>3: Putting it all together</h2>
 <p>Awesome, that’s all of the basics for running
 <code>malariasimulation</code> simulations with clinical treatment. For
 the final exercise, I want you to run two simulations to look at the
@@ -544,10 +544,10 @@ learnr:::store_exercise_cache(structure(list(label = "view-drug-params", global_
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "drug-params-quiz-1", 
     question = structure("The efficacy of DHA-PQP in the DHA_PQP_params set is 0.95000", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_20246f8", 
+    "character")), answers = list(structure(list(id = "lnr_ans_8b0af39", 
         option = "TRUE", value = "TRUE", label = structure("TRUE", html = TRUE, class = c("html", 
         "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_873a88a", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_14fe5b5", 
         option = "FALSE", value = "FALSE", label = structure("FALSE", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
     "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -558,7 +558,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
     "character")), message = NULL, post_message = NULL), ids = list(
         answer = "drug-params-quiz-1-answer", question = "drug-params-quiz-1"), 
     loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 951334173.557001, options = list()), class = c("learnr_radio", 
+    seed = 1631052545.74048, options = list()), class = c("learnr_radio", 
 "tutorial_question")), session = session)
 </script>
 
@@ -566,10 +566,10 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "drug-params-quiz-2", 
     question = structure("The drug_rel_c of SP-AQ in the SP_AQ_params set is 4.30", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_f80ffb0", 
+    "character")), answers = list(structure(list(id = "lnr_ans_d0f7d5", 
         option = "TRUE", value = "TRUE", label = structure("TRUE", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_ef1b556", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_5852135", 
         option = "FALSE", value = "FALSE", label = structure("FALSE", html = TRUE, class = c("html", 
         "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
     "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -580,20 +580,20 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
     "character")), message = NULL, post_message = NULL), ids = list(
         answer = "drug-params-quiz-2-answer", question = "drug-params-quiz-2"), 
     loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 767700981.142511, options = list()), class = c("learnr_radio", 
+    seed = 905127875.078517, options = list()), class = c("learnr_radio", 
 "tutorial_question")), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "drug-prophlaxis-quiz-1", 
     question = structure("The drug that provides protection for the longest is", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_8c09e41", 
+    "character")), answers = list(structure(list(id = "lnr_ans_8787e54", 
         option = "SP-AQ", value = "SP-AQ", label = structure("SP-AQ", html = TRUE, class = c("html", 
         "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_63835ce", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_bea4892", 
         option = "AL", value = "AL", label = structure("AL", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_9e4e796", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_8baa045", 
         option = "DHA-PQP", value = "DHA-PQP", label = structure("DHA-PQP", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
     "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -604,7 +604,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
     "character")), message = NULL, post_message = NULL), ids = list(
         answer = "drug-prophlaxis-quiz-1-answer", question = "drug-prophlaxis-quiz-1"), 
     loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 1050313044.51091, options = list()), class = c("learnr_radio", 
+    seed = 1808711033.65775, options = list()), class = c("learnr_radio", 
 "tutorial_question")), session = session)
 </script>
 
@@ -612,10 +612,10 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "drug-prophlaxis-quiz-2", 
     question = structure("The drug_rel_c of SP-AQ in the SP_AQ_params set is 4.30", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_43be349", 
+    "character")), answers = list(structure(list(id = "lnr_ans_436a367", 
         option = "TRUE", value = "TRUE", label = structure("TRUE", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_ee0ff04", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_e5422f8", 
         option = "FALSE", value = "FALSE", label = structure("FALSE", html = TRUE, class = c("html", 
         "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
     "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -626,7 +626,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
     "character")), message = NULL, post_message = NULL), ids = list(
         answer = "drug-prophlaxis-quiz-2-answer", question = "drug-prophlaxis-quiz-2"), 
     loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 787919785.633096, options = list()), class = c("learnr_radio", 
+    seed = 1088967165.49291, options = list()), class = c("learnr_radio", 
 "tutorial_question")), session = session)
 </script>
  
@@ -772,10 +772,10 @@ learnr:::store_exercise_cache(structure(list(label = "set-clin-treat-example", g
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz2-1", question = structure("Drug parameters must be loaded into set_drugs() as a list?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_550743e", 
+"character")), answers = list(structure(list(id = "lnr_ans_9788aa7", 
     option = "TRUE", value = "TRUE", label = structure("TRUE", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_80fad3e", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_2c2610a", 
     option = "FALSE", value = "FALSE", label = structure("FALSE", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -785,7 +785,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz2-1-answer", question = "quiz2-1"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 1901724298.11444, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 942579014.061077, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
@@ -793,16 +793,16 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz2-2", question = structure("If we want to specify clinical treatment regimes for three drugs, how many times must we use set_clinical_treatment()?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_3c136ca", 
+"character")), answers = list(structure(list(id = "lnr_ans_b7f6bb8", 
     option = "1", value = "1", label = structure("1", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_bac51ff", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_e2619b8", 
     option = "2", value = "2", label = structure("2", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_65dd5f1", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_ce51197", 
     option = "3", value = "3", label = structure("3", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_df3b2db", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_6210a05", 
     option = "4", value = "4", label = structure("4", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -812,25 +812,25 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz2-2-answer", question = "quiz2-2"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 2104261777.52013, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 2026239400.55646, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz2-3", question = structure("If we input the vector c(0, 365, 720) as the argument for timesteps into set_clinical_treatment(), which of the following vectors would NOT work for the coverages argument?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_49a233b", 
+"character")), answers = list(structure(list(id = "lnr_ans_e07fa44", 
     option = "c(0.4, 0.5, 0.6)", value = "c(0.4, 0.5, 0.6)", 
     label = structure("c(0.4, 0.5, 0.6)", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_96af643", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_c407f09", 
     option = "c(0, 0, 0)", value = "c(0, 0, 0)", label = structure("c(0, 0, 0)", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_aded13d", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_9a261b3", 
     option = "c(0.9, 0.4, 0.1)", value = "c(0.9, 0.4, 0.1)", 
     label = structure("c(0.9, 0.4, 0.1)", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_89ea556", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_58a164b", 
     option = "c(0, 0.5)", value = "c(0, 0.5)", label = structure("c(0, 0.5)", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -840,7 +840,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz2-3-answer", question = "quiz2-3"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 591598501.724515, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 685012862.681016, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>

@@ -32,7 +32,7 @@ To simulate clinical treatment in malariasimulation, there are six steps:
 
 Using these six steps, we can simulate clinical treatment regimes that span from the very simple (single drug at a single coverage level through time) to the quite complex (multiple drugs with time-varying coverages).
 
-## 2. Loading antimalarial drug parameters
+## 1. Loading antimalarial drug parameters
 
 As we saw earlier, the first step when using malariasimulation is to load a set of parameters using `get_parameters()`:
 
@@ -145,7 +145,7 @@ parameters <- set_drugs(parameters = parameters, drugs = list(DHA_PQP_params))
 
 ```
 
-## 3. Setting clinical treatment
+## 2. Setting clinical treatment
 
 Now that we know how to load antimalarial drug parameters we can specify how they will be administered to the population. In malariasimulation, we parameterise clinical treatment using the `set_clinical_treatment()` function (run `?set_clinical_treatment()` to view the help file for the function). `set_clinical_treatment()` requires four arguments:
 
@@ -212,7 +212,7 @@ quiz(
 
 ```
 
-## 4: Putting it all together
+## 3: Putting it all together
 
 Awesome, that's all of the basics for running `malariasimulation` simulations with clinical treatment. For the final exercise, I want you to run two simulations to look at the effect of clinical treatment on malaria transmission dynamics.
 
