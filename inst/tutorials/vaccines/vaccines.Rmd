@@ -307,12 +307,9 @@ full_output$time_year <- full_output$timestep / 365 # calculate time in years
 # calculate incidence in children under 5 here
 full_output$clinical_incidence<- 1000* full_output$n_inc_clinical_0_1825 / full_output$n_0_1825
 
-# calculate parasite prevalence
-full_output$pfpr<- full_output$n_detect_730_3650/full_output$n_730_3650
-
 
 incidence_plot(full_output)
-prevalence_plot(full_output)
+
 ```
 
 
@@ -339,9 +336,9 @@ Plot incidence and the doses delivered for this model.
 ```{r age_based_questions, echo = FALSE}
 quiz(caption = "Age-based  example",
      question("At what point does parasite prevalence begin to diverge between vaccine and non-vaccine scenario?",
-              answer("3 years in", correct = TRUE),
-              answer("4 years in"),
-              answer("2 years in"), correct = "Correct-- given that vaccine coverage is lower in this scenario, we only begin to see noticable vaccine impact 3 years into the simulation 2 years after the vaccine is introduced.", allow_retry = T))
+              answer("3 years in"),
+              answer("0.5 years in"),
+              answer("2 years in", correct = TRUE), allow_retry = T))
 
 ```
 
