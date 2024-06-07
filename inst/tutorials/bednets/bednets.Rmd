@@ -8,6 +8,7 @@ runtime: shiny_prerendered
 library(learnr)
 library(malariasimulation)
 library(dplyr)
+library(tidyr)
 library(ggplot2)
 knitr::opts_chunk$set(echo = FALSE)
 ```
@@ -164,12 +165,7 @@ parameters <- set_species(parameters = parameters,
 
 Now that we've seen how to parameterise the model for multiple vector species, let's add a bed net campaign and run the simulation. Remember, as we're simulating multiple vector species, the matrix inputs for the `dn0`, `rn`, and `rnm` parameters will need rows for each species!
 
-
-
-
 ```{r set_species_demo_3, exercise = TRUE}
-
-matrix(c(0.533, 0.533, 0.33, 0.33), nrow = 2, byrow = TRUE)
 
 # Load the base parameter set:
 parameters <- get_parameters(overrides = list(human_population = 1000))
@@ -184,16 +180,32 @@ parameters <- set_bednets(parameters = parameters,
                           timesteps = c(1, 4) * 365,
                           coverages = c(0.5, 0.5),
                           retention = 5 * 365,
-                          dn0 = matrix(c(0.533, 0.533), nrow = 2, ncol = 1),
-                          rn =  matrix(c(0.56, 0.56), nrow = 2, ncol = 1),
-                          rnm =  matrix(c(0.24, 0.24), nrow = 2, ncol = 1), 
+                          dn0 = matrix(c(0.533, 0.533, 0.533, 0.533), nrow = 2, ncol = 2),
+                          rn =  matrix(c(0.56, 0.56, 0.56, 0.56), nrow = 2, ncol = 2),
+                          rnm =  matrix(c(0.24, 0.24, 0.24, 0.24), nrow = 2, ncol = 2), 
                           gamman =  rep(2.64 * 365, 2))
 
 # Equilibrate the model parameters:
 parameters <- set_equilibrium(parameters = parameters, init_EIR = 8)
 
-# Run the simulation
+# Run the simulation:
+simulation_output <- run_simulation(timesteps = 7 * 365, 
+                                    parameters = parameters)
 
+# Plot the mosquito population through time:
+simulation_output |>
+  mutate(gamb_total = Sm_gamb_count + Im_gamb_count + Pm_gamb_count,
+         steph_total = Sm_steph_count + Im_steph_count + Pm_steph_count) |>
+  select(timestep, gamb_total, steph_total) |>
+  pivot_longer(cols = c(gamb_total, steph_total), names_to = "Species", values_to = "Count") |>
+  ggplot(aes(x = timestep, y = Count, colour = Species)) +
+  geom_line(linewidth = 1.2) +
+  theme_bw() +
+  labs(x = "Time (days)", y = "Number of Adult Female Mosquitoes") +
+  scale_y_continuous(limits = c(0, 7500)) +
+  geom_vline(xintercept = c(365, 1460), linetype = "dashed")
 
+```
 
-## Final Exercise
+We have plotted the number of adult mosquitoes of each species through time. What do you notice about the effect of the bed net distributions on the *An. gambiae* and *An. stephensi*? Does the information in `?gamb_params` and/or `?steph_params` provide any clues?
+
