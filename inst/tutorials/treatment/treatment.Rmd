@@ -15,19 +15,22 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```
 
-## 1. Introduction
+# 1. Introduction
 
 Now that we know how to set up and run basic simulations using `malariasimulation`, we can start to think about how we build interventions into our simulations and visualise how they affect malaria transmission dynamics. One such intervention is clinical treatment, or case management, in which individuals that get a clinical case of malaria are treated with an antimalarial drug.
 
-To simulate clinical treatment in malariasimulation, there are four main steps:
+To simulate clinical treatment in malariasimulation, there are six steps:
+
+![](images/clinical_treatment_workflow.png){width="100%"}
 
 1.  Load the base set of malariasimulation parameters (`get_parameters()`)
 2.  Load parameters for the drug(s) of choice into our list of model parameters (`set_drugs()`)
 3.  Specify the clinical treatment coverage for each drug through time (`set_clinical_treatment()`)
 4.  Tune the parameters to the equilibrial state (`set_equilibrium()`)
 5.  Run the simulation (`run_simulation()`)
+6.  Process the simulation outputs
 
-Using these four steps, we can simulate clinical treatment regimes that span from the very simple (single drug at a single coverage level through time) to the quite complex (multiple drugs with time-varying coverages). As we saw earlier, the first step when using malariasimulation is to load a set of parameters using `get_parameters()`:
+Using these six steps, we can simulate clinical treatment regimes that span from the very simple (single drug at a single coverage level through time) to the quite complex (multiple drugs with time-varying coverages). As we saw earlier, the first step when using malariasimulation is to load a set of parameters using `get_parameters()`:
 
 ```{r load-malsim-parameters, exercise = TRUE, exercise.eval = FALSE}
 
@@ -74,11 +77,37 @@ SP_AQ_params
 quiz(
   question("The efficacy of DHA-PQP in the DHA_PQP_params set is 0.95000",
     answer("TRUE", correct = TRUE),
-    answer("FALSE")
+    answer("FALSE"),
+    allow_retry = TRUE
   ),
   question("The drug_rel_c of SP-AQ in the SP_AQ_params set is 4.30",
     answer("TRUE"),
-    answer("FALSE", correct = TRUE)
+    answer("FALSE", correct = TRUE),
+    allow_retry = TRUE
+  )
+)
+
+```
+
+The shape and scale parameters govern the strength and duration of the prophylactic protection provided by the drug.
+
+![](images/drug_prophylaxis_curve.png){width="100%"}
+
+Looking at the plot above, answer the following question:
+
+```{r drug-prophlaxis-quiz}
+SP_AQ_params
+quiz(
+  question("The drug that provides protection for the longest is",
+    answer("SP-AQ", correct = TRUE),
+    answer("AL"),
+    answer("DHA-PQP"),
+    allow_retry = TRUE
+  ),
+  question("The drug_rel_c of SP-AQ in the SP_AQ_params set is 4.30",
+    answer("TRUE"),
+    answer("FALSE", correct = TRUE),
+    allow_retry = TRUE
   )
 )
 
@@ -106,7 +135,7 @@ The final line of the chunk above shows us how we can view the drug parameters c
 # Establish a list of malariasimulation parameters:
 parameters <- get_parameters() 
 
-# Load the parameters for artemether lumefantrine into the parameters
+# Load the parameters for artemether lumefantrine into the parameters list:
 parameters <- set_drugs(parameters = parameters, drugs = list(DHA_PQP_params))
 
 # View the drug_rel_c parameter for DHA-PQP:
@@ -139,12 +168,12 @@ parameters <- set_clinical_treatment(parameters = parameters, drug = 1, timestep
 # Tune the parameter set to an initial EIR:
 parameters <- set_equilibrium(parameters = parameters, init_EIR = 8)
 
-# Run the simulation
+# Run the simulation:
 clinical_treatment_simulation <- run_simulation(timesteps = 3 * 365, parameters = parameters)
 
 # Plot the prevalence through time:
 clinical_treatment_simulation |>
-  ggplot(aes(x = timestep, y = n_detect_lm_730_3650/n_730_3650)) +
+  ggplot(aes(x = timestep, y = n_detect_730_3650/n_730_3650)) +
   geom_line(colour = "deepskyblue2", linewidth = 1.2) +
   theme_bw() +
   labs(x = "Time (days)", y = "Prevalence (2-10)")+
@@ -160,19 +189,22 @@ clinical_treatment_simulation |>
 quiz(
   question("Drug parameters must be loaded into set_drugs() as a list?",
     answer("TRUE", correct = TRUE),
-    answer("FALSE")
+    answer("FALSE"),
+    allow_retry = TRUE
   ),
   question("If we want to specify clinical treatment regimes for three drugs, how many times must we use set_clinical_treatment()?",
-    answer("1", correct = TRUE),
+    answer("1"),
     answer("2"),
-    answer("3"),
-    answer("4")
+    answer("3", correct = TRUE),
+    answer("4"),
+    allow_retry = TRUE
   ),
    question("If we input the vector c(0, 365, 720) as the argument for timesteps into set_clinical_treatment(), which of the following vectors would NOT work for the coverages argument?",
     answer("c(0.4, 0.5, 0.6)"),
     answer("c(0, 0, 0)"),
     answer("c(0.9, 0.4, 0.1)"),
-    answer("c(0, 0.5)", correct = TRUE)
+    answer("c(0, 0.5)", correct = TRUE),
+    allow_retry = TRUE
   )
 )
 
@@ -185,7 +217,7 @@ Awesome, that's all of the basics for running `malariasimulation` simulations wi
 The first simulation is a baseline scenario with the following criteria:
 
 1.  `human_population` size of 10000
-2.  Equilibrate the parameters to an initial EIR of 8 (refer the "basics" tutorial if you need to!)
+2.  Equilibrate the parameters to an initial EIR of 8 (refer the "introduction" tutorial if you need to!)
 3.  Run the simulation for 5 years
 
 The second simulation will use what we've learnt to simulate clinical treatment with the following criteria:
@@ -195,8 +227,9 @@ The second simulation will use what we've learnt to simulate clinical treatment 
 3.  Initiate clinical treatment with a coverage of 0.4 at the end of year 1
 4.  Increase the coverage to 0.8 at the end of the third year
 5.  Equilibrate the simulations with an initial EIR of 8
-6.  Run both simulations for 5 years
-7.  Plot the *Pf*PR~2-10~ for each simulation and compare the outputs
+6.  Run the simulation for 5 years
+
+Plot the *Pf*PR~2-10~ for each simulation and compare the outputs!
 
 ```{r final-exercise, exercise=TRUE}
 
