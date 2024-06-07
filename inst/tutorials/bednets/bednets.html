@@ -109,26 +109,29 @@ if (window.hljs) {
 
 <article class="topics" id="learnr-tutorial-content">
 
-<div id="section-introduction" class="section level2">
-<h2>Introduction</h2>
+<div id="section-introduction" class="section level1">
+<h1>Introduction</h1>
 <p>Another widely used intervention that can be simulated using
-<code>malariasimulation</code> is the distribution of insecticidal bed
-nets (ITNs/LLINs). <code>malariasimulation</code> allows the users to
-tune a number of important components of both the bed nets to be
-distributed (e.g. efficacy, longevity) and the way in which they are
-distriubted (e.g. timing, coverage, and target population). In this
+<code>malariasimulation</code> is the distribution of insecticide
+treated bed nets (ITNs/LLINs). <code>malariasimulation</code> allows the
+users to tune a number of important components of both the bed nets to
+be distributed (e.g. efficacy, longevity) and the way in which they are
+distributed (e.g. timing, coverage, and target population). In this
 tutorial, we will build on what we have learnt so far to learn how to
 simulate bed net distribution campaigns.</p>
-<p>To simulate the distribution of bed nets, there are 4 steps:</p>
+<p><img src="images/bednet_simulation_workflow.png"
+style="width:100.0%" /></p>
+<p>To simulate the distribution of bed nets, there are six steps:</p>
 <ol style="list-style-type: decimal">
 <li>Load the base set of malariasimulation parameters
 (<code>get_parameters()</code>)</li>
+<li>Set the vector community (<code>set_species()</code>)</li>
 <li>Specify the bed net parameters (<code>set_bednets()</code>)</li>
 <li>Equilibrate the parameter set to an initial EIR
 (<code>set_equilibrium()</code>)</li>
 <li>Run the simulation (<code>run_simulation()</code>)</li>
+<li>Process the simulation outputs</li>
 </ol>
-</div>
 <div id="section-specifying-a-simple-bed-net-campaign"
 class="section level2">
 <h2>Specifying a simple bed net campaign</h2>
@@ -171,7 +174,10 @@ events are scheduled for
 (i.e. <code>length(timesteps) == length(coverages)</code>).</p>
 <p>Let’s take a look at a simple example of how to use
 <code>set_bednets()</code> to simulate bed net distributions when a
-single species of mosquito is simulated:</p>
+single species of mosquito is simulated. As the default behaviour for
+malariasimulation is to simulate a mosquito population composed of only
+<em>An. gambiae</em>, we do not need to call <code>set_species()</code>
+in this instance.</p>
 <div class="tutorial-exercise" data-label="set_bednets_example-1"
 data-completion="1" data-diagnostics="1" data-startover="1"
 data-lines="0" data-pipe="|&gt;">
@@ -251,7 +257,7 @@ simulation_output |&gt;
 
 # Plot the mosquito population through time:
 simulation_output |&gt;
-  mutate(pfpr210 = n_detect_lm_730_3650 / n_730_3650) |&gt;
+  mutate(pfpr210 = n_detect_730_3650 / n_730_3650) |&gt;
   ggplot(aes(x = timestep, y = pfpr210)) +
   geom_line(linewidth = 1.2, colour = &quot;brown2&quot;) +
   theme_bw() +
@@ -273,15 +279,12 @@ time and see how it affects what we see.</p>
 id="section-specifying-a-campaign-when-simulating-multiple-mosquito-species"
 class="section level2">
 <h2>Specifying a campaign when simulating multiple mosquito species</h2>
-<p>The default behaviour is for <code>malariasimulation</code> to
-simulate a single mosquito species, <em>Anopheles gambiae</em>. However,
-as we’ve discussed, <code>malariasimulation</code> supports the
-simulation of settings with multiple mosquito species, and has in-built
-parameter sets for <em>An. funestus</em> (<code>fun_params</code>),
-<em>An. arabiensis</em> (<code>arab_params</code>), and <em>An.
-stephensi</em> (<code>steph_params</code>). In this section, we’ll see
-how to set up the same bed net campaign we’ve just used, but with two
-vector species.</p>
+<p>As mentioned, the default behaviour is for
+<code>malariasimulation</code> to simulate a single mosquito species,
+<em>Anopheles gambiae</em>. However,
+malariasimulation<code>supports the simulation of settings with multiple mosquito species, and has in-built parameter sets for *An. funestus* (</code>fun_params<code>), *An. arabiensis* (</code>arab_params<code>), and *An. stephensi* (</code>steph_params`).
+In this section, we’ll see how to set up the same bed net campaign we’ve
+just used, but with two vector species.</p>
 <p>We won’t focus on the parameters in these sets today (although feel
 free to ask later), but we can view the parameter sets:</p>
 <div class="tutorial-exercise" data-label="set_species_demo_1"
@@ -294,11 +297,10 @@ fun_params
 ?fun_params</code></pre>
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
-<p>Similar to <code>set_drugs()</code> in the treatment exercise, the
-<code>set_species()</code> function is used to load the mosquito species
-parameters of interest into our list of <code>malariasimulation</code>
-parameters. The <code>set_species()</code> function has three
-arguments:</p>
+<p>The <code>set_species()</code> function is used to load the mosquito
+species parameters of interest into our list of
+<code>malariasimulation</code> parameters. The
+<code>set_species()</code> function has three arguments:</p>
 <ol style="list-style-type: decimal">
 <li><code>parameters</code>: A list of malariasimulation parameters (as
 established using <code>get_parameters()</code>)</li>
@@ -345,94 +347,90 @@ parameters &lt;- set_bednets(parameters = parameters,
                           timesteps = c(1, 4) * 365,
                           coverages = c(0.5, 0.5),
                           retention = 5 * 365,
-                          dn0 = matrix(c(0.533, 0.533, 0.533, 0.533), nrow = 2, ncol = 1),
-                          rn =  matrix(c(0.56, 0.56, 0.56, 0.56), nrow = 2, ncol = 1),
-                          rnm =  matrix(c(0.24, 0.24, 0.24, 0.24), nrow = 2, ncol = 1), 
+                          dn0 = matrix(c(0.533, 0.533, 0.533, 0.533), nrow = 2, ncol = 2),
+                          rn =  matrix(c(0.56, 0.56, 0.56, 0.56), nrow = 2, ncol = 2),
+                          rnm =  matrix(c(0.24, 0.24, 0.24, 0.24), nrow = 2, ncol = 2), 
                           gamman =  rep(2.64 * 365, 2))
 
 # Equilibrate the model parameters:
 parameters &lt;- set_equilibrium(parameters = parameters, init_EIR = 8)
 
+# Run the simulation:
 simulation_output &lt;- run_simulation(timesteps = 7 * 365, 
                                     parameters = parameters)
 
 # Plot the mosquito population through time:
 simulation_output |&gt;
-  mutate(total_mosquito_population = Sm_gamb_count + Im_gamb_count + Pm_gamb_count) |&gt;
-  ggplot(aes(x = timestep, y = total_mosquito_population)) +
-  geom_line(linewidth = 1.2, colour = &quot;deepskyblue2&quot;) +
+  mutate(gamb_total = Sm_gamb_count + Im_gamb_count + Pm_gamb_count,
+         steph_total = Sm_steph_count + Im_steph_count + Pm_steph_count) |&gt;
+  select(timestep, gamb_total, steph_total) |&gt;
+  pivot_longer(cols = c(gamb_total, steph_total), names_to = &quot;Species&quot;, values_to = &quot;Count&quot;) |&gt;
+  ggplot(aes(x = timestep, y = Count, colour = Species)) +
+  geom_line(linewidth = 1.2) +
   theme_bw() +
-  labs(x = &quot;Time (days)&quot;, y = &quot;Adult Female Mosquito Population Size&quot;) +
+  labs(x = &quot;Time (days)&quot;, y = &quot;Number of Adult Female Mosquitoes&quot;) +
   scale_y_continuous(limits = c(0, 7500)) +
-  geom_vline(xintercept = c(365, 1460), linetype = &quot;dashed&quot;)
-
-# Plot the mosquito population through time:
-simulation_output |&gt;
-  mutate(pfpr210 = n_detect_lm_730_3650 / n_730_3650) |&gt;
-  ggplot(aes(x = timestep, y = pfpr210)) +
-  geom_line(linewidth = 1.2, colour = &quot;brown2&quot;) +
-  theme_bw() +
-  labs(x = &quot;Time (days)&quot;, y = &quot;Prevalence (2-10)&quot;) +
-  scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
-  scale_x_continuous(expand = c(0, 0))</code></pre>
+  geom_vline(xintercept = c(365, 1460), linetype = &quot;dashed&quot;)</code></pre>
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
-</div>
-<div id="section-final-exercise" class="section level2">
-<h2>Final Exercise</h2>
-<p>
+<p>We have plotted the number of adult mosquitoes of each species
+through time. What do you notice about the effect of the bed net
+distributions on the <em>An. gambiae</em> and <em>An. stephensi</em>?
+Does the information in <code>?gamb_params</code> and/or
+<code>?steph_params</code> provide any clues? 
 <script type="application/shiny-prerendered" data-context="server-start">
 library(learnr)
 library(malariasimulation)
 library(dplyr)
+library(tidyr)
 library(ggplot2)
 knitr::opts_chunk$set(echo = FALSE)
 </script>
- 
+
+
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::register_http_handlers(session, metadata = NULL)
 </script>
-
-
+ 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::prepare_tutorial_state(session)
 </script>
- 
+
+
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::i18n_observe_tutorial_language(input, session)
 </script>
-
-
+ 
 <script type="application/shiny-prerendered" data-context="server">
 session$onSessionEnded(function() {
         learnr:::event_trigger(session, "session_stop")
       })
 </script>
- 
+
+
 <script type="application/shiny-prerendered" data-context="server">
 `tutorial-exercise-set_bednets_example-1-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-set_bednets_example-1-code-editor`)), session)
 output$`tutorial-exercise-set_bednets_example-1-output` <- renderUI({
   `tutorial-exercise-set_bednets_example-1-result`()
 })
 </script>
-
-
+ 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::store_exercise_cache(structure(list(label = "set_bednets_example-1", global_setup = structure(c("library(learnr)", 
-"library(malariasimulation)", "library(dplyr)", "library(ggplot2)", 
-"knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(label = "setup", 
-    include = FALSE)), setup = NULL, chunks = list(list(label = "set_bednets_example-1", 
-    code = "\n# Load the base parameter set:\nparameters <- get_parameters(overrides = list(human_population = 1000))\n\n# Load the bed net parameters into the parameter list using set_bednets()\nparameters <- set_bednets(parameters = parameters,\n                          timesteps = c(1, 4) * 365,\n                          coverages = c(0.5, 0.5),\n                          retention = 5 * 365,\n                          dn0 = matrix(c(0.533, 0.533), nrow = 2, ncol = 1),\n                          rn =  matrix(c(0.56, 0.56), nrow = 2, ncol = 1),\n                          rnm =  matrix(c(0.24, 0.24), nrow = 2, ncol = 1), \n                          gamman =  rep(2.64 * 365, 2))\n", 
-    opts = list(label = "\"set_bednets_example-1\"", exercise = "TRUE"), 
-    engine = "r")), code_check = NULL, error_check = NULL, check = NULL, 
-    solution = NULL, tests = NULL, options = list(eval = FALSE, 
-        echo = TRUE, results = "markup", tidy = FALSE, tidy.opts = NULL, 
-        collapse = FALSE, prompt = FALSE, comment = NA, highlight = FALSE, 
-        size = "normalsize", background = "#F7F7F7", strip.white = TRUE, 
-        cache = 0, cache.path = "bednets_cache/html/", cache.vars = NULL, 
-        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
-        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
-        fig.align = "default", fig.path = "bednets_files/figure-html/", 
+"library(malariasimulation)", "library(dplyr)", "library(tidyr)", 
+"library(ggplot2)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
+    label = "setup", include = FALSE)), setup = NULL, chunks = list(
+    list(label = "set_bednets_example-1", code = "\n# Load the base parameter set:\nparameters <- get_parameters(overrides = list(human_population = 1000))\n\n# Load the bed net parameters into the parameter list using set_bednets()\nparameters <- set_bednets(parameters = parameters,\n                          timesteps = c(1, 4) * 365,\n                          coverages = c(0.5, 0.5),\n                          retention = 5 * 365,\n                          dn0 = matrix(c(0.533, 0.533), nrow = 2, ncol = 1),\n                          rn =  matrix(c(0.56, 0.56), nrow = 2, ncol = 1),\n                          rnm =  matrix(c(0.24, 0.24), nrow = 2, ncol = 1), \n                          gamman =  rep(2.64 * 365, 2))\n", 
+        opts = list(label = "\"set_bednets_example-1\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "bednets_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "bednets_files/figure-html/", 
         dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
         fig.width = 6.5, fig.height = 4, fig.env = "figure", 
         fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
@@ -456,19 +454,20 @@ learnr:::store_exercise_cache(structure(list(label = "set_bednets_example-1", gl
     engine = "r", version = "4"), class = c("r", "tutorial_exercise"
 )))
 </script>
- 
+
+
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz-1-1", question = structure("What mosquito death rate (dn0) have we specified in the chunk above?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_c92f963", 
+"character")), answers = list(structure(list(id = "lnr_ans_ce62f62", 
     option = "365", value = "365", label = structure("365", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_9f6cfb2", 
-    option = "0.56", value = "0.56", label = structure("0.56", html = TRUE, class = c("html", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_3eb1d96", 
+    option = "0.533", value = "0.533", label = structure("0.533", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_f313ff", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_2430b00", 
     option = "0.24", value = "0.24", label = structure("0.24", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_882db01", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_d333c81", 
     option = "0", value = "0", label = structure("0", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -478,25 +477,24 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz-1-1-answer", question = "quiz-1-1"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 834706272.61131, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 321541883.35027, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
-
-
+ 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz-1-2", question = structure("How many columns must the matrix inputs for dn0, rn, and rnm contain if we specify bed net events to be updated 5 times (i.e. we want parameters to be updated on 5 timesteps)?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_ef40767", 
+"character")), answers = list(structure(list(id = "lnr_ans_6cbe0fc", 
     option = "3", value = "3", label = structure("3", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_2793342", 
-    option = "Depends on the number of mosquito species", value = "Depends on the number of mosquito species", 
-    label = structure("Depends on the number of mosquito species", html = TRUE, class = c("html", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_cba2700", 
+    option = "It depends on the number of mosquito species", 
+    value = "It depends on the number of mosquito species", label = structure("It depends on the number of mosquito species", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_8b30de2", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_35b1e98", 
     option = "1", value = "1", label = structure("1", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_8dd137d", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_6c75447", 
     option = "5", value = "5", label = structure("5", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -506,35 +504,35 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz-1-2-answer", question = "quiz-1-2"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = FALSE, seed = 1841633610.14242, 
+    random_answer_order = FALSE, allow_retry = FALSE, seed = 1523570786.29053, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
- 
+
+
 <script type="application/shiny-prerendered" data-context="server">
 `tutorial-exercise-set_bednets_example-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-set_bednets_example-code-editor`)), session)
 output$`tutorial-exercise-set_bednets_example-output` <- renderUI({
   `tutorial-exercise-set_bednets_example-result`()
 })
 </script>
-
-
+ 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::store_exercise_cache(structure(list(label = "set_bednets_example", global_setup = structure(c("library(learnr)", 
-"library(malariasimulation)", "library(dplyr)", "library(ggplot2)", 
-"knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(label = "setup", 
-    include = FALSE)), setup = NULL, chunks = list(list(label = "set_bednets_example", 
-    code = "\n# Load the base parameter set:\nparameters <- get_parameters(overrides = list(human_population = 1000))\n\n# Load the bed net parameters into the parameter list using set_bednets()\nparameters <- set_bednets(parameters = parameters,\n                          timesteps = c(1, 4) * 365,\n                          coverages = c(0.5, 0.5),\n                          retention = 5 * 365,\n                          dn0 = matrix(c(0.533, 0.533), nrow = 2, ncol = 1),\n                          rn =  matrix(c(0.56, 0.56), nrow = 2, ncol = 1),\n                          rnm =  matrix(c(0.24, 0.24), nrow = 2, ncol = 1), \n                          gamman =  rep(2.64 * 365, 2))\n\n# Equilibrate the model parameters to an initial EIR:\nparameters <- set_equilibrium(parameters = parameters, \n                              init_EIR = 8)\n\n# Run the simulation\nsimulation_output <- run_simulation(timesteps = 7 * 365, \n                                    parameters = parameters)\n\n# Plot the mosquito population through time:\nsimulation_output |>\n  mutate(total_mosquito_population = Sm_gamb_count + Im_gamb_count + Pm_gamb_count) |>\n  ggplot(aes(x = timestep, y = total_mosquito_population)) +\n  geom_line(linewidth = 1.2, colour = \"deepskyblue2\") +\n  theme_bw() +\n  labs(x = \"Time (days)\", y = \"Adult Female Mosquito Population Size\") +\n  scale_y_continuous(limits = c(0, 7500)) +\n  geom_vline(xintercept = c(365, 1460), linetype = \"dashed\")\n\n# Plot the mosquito population through time:\nsimulation_output |>\n  mutate(pfpr210 = n_detect_lm_730_3650 / n_730_3650) |>\n  ggplot(aes(x = timestep, y = pfpr210)) +\n  geom_line(linewidth = 1.2, colour = \"brown2\") +\n  theme_bw() +\n  labs(x = \"Time (days)\", y = \"Prevalence (2-10)\") +\n  scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +\n  scale_x_continuous(expand = c(0, 0))\n", 
-    opts = list(label = "\"set_bednets_example\"", exercise = "TRUE"), 
-    engine = "r")), code_check = NULL, error_check = NULL, check = NULL, 
-    solution = NULL, tests = NULL, options = list(eval = FALSE, 
-        echo = TRUE, results = "markup", tidy = FALSE, tidy.opts = NULL, 
-        collapse = FALSE, prompt = FALSE, comment = NA, highlight = FALSE, 
-        size = "normalsize", background = "#F7F7F7", strip.white = TRUE, 
-        cache = 0, cache.path = "bednets_cache/html/", cache.vars = NULL, 
-        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
-        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
-        fig.align = "default", fig.path = "bednets_files/figure-html/", 
+"library(malariasimulation)", "library(dplyr)", "library(tidyr)", 
+"library(ggplot2)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
+    label = "setup", include = FALSE)), setup = NULL, chunks = list(
+    list(label = "set_bednets_example", code = "\n# Load the base parameter set:\nparameters <- get_parameters(overrides = list(human_population = 1000))\n\n# Load the bed net parameters into the parameter list using set_bednets()\nparameters <- set_bednets(parameters = parameters,\n                          timesteps = c(1, 4) * 365,\n                          coverages = c(0.5, 0.5),\n                          retention = 5 * 365,\n                          dn0 = matrix(c(0.533, 0.533), nrow = 2, ncol = 1),\n                          rn =  matrix(c(0.56, 0.56), nrow = 2, ncol = 1),\n                          rnm =  matrix(c(0.24, 0.24), nrow = 2, ncol = 1), \n                          gamman =  rep(2.64 * 365, 2))\n\n# Equilibrate the model parameters to an initial EIR:\nparameters <- set_equilibrium(parameters = parameters, \n                              init_EIR = 8)\n\n# Run the simulation\nsimulation_output <- run_simulation(timesteps = 7 * 365, \n                                    parameters = parameters)\n\n# Plot the mosquito population through time:\nsimulation_output |>\n  mutate(total_mosquito_population = Sm_gamb_count + Im_gamb_count + Pm_gamb_count) |>\n  ggplot(aes(x = timestep, y = total_mosquito_population)) +\n  geom_line(linewidth = 1.2, colour = \"deepskyblue2\") +\n  theme_bw() +\n  labs(x = \"Time (days)\", y = \"Adult Female Mosquito Population Size\") +\n  scale_y_continuous(limits = c(0, 7500)) +\n  geom_vline(xintercept = c(365, 1460), linetype = \"dashed\")\n\n# Plot the mosquito population through time:\nsimulation_output |>\n  mutate(pfpr210 = n_detect_730_3650 / n_730_3650) |>\n  ggplot(aes(x = timestep, y = pfpr210)) +\n  geom_line(linewidth = 1.2, colour = \"brown2\") +\n  theme_bw() +\n  labs(x = \"Time (days)\", y = \"Prevalence (2-10)\") +\n  scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +\n  scale_x_continuous(expand = c(0, 0))\n", 
+        opts = list(label = "\"set_bednets_example\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "bednets_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "bednets_files/figure-html/", 
         dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
         fig.width = 6.5, fig.height = 4, fig.env = "figure", 
         fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
@@ -565,7 +563,7 @@ learnr:::store_exercise_cache(structure(list(label = "set_bednets_example", glob
         "  theme_bw() +", "  labs(x = \"Time (days)\", y = \"Adult Female Mosquito Population Size\") +", 
         "  scale_y_continuous(limits = c(0, 7500)) +", "  geom_vline(xintercept = c(365, 1460), linetype = \"dashed\")", 
         "", "# Plot the mosquito population through time:", "simulation_output |>", 
-        "  mutate(pfpr210 = n_detect_lm_730_3650 / n_730_3650) |>", 
+        "  mutate(pfpr210 = n_detect_730_3650 / n_730_3650) |>", 
         "  ggplot(aes(x = timestep, y = pfpr210)) +", "  geom_line(linewidth = 1.2, colour = \"brown2\") +", 
         "  theme_bw() +", "  labs(x = \"Time (days)\", y = \"Prevalence (2-10)\") +", 
         "  scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +", 
@@ -575,31 +573,31 @@ learnr:::store_exercise_cache(structure(list(label = "set_bednets_example", glob
     engine = "r", version = "4"), class = c("r", "tutorial_exercise"
 )))
 </script>
- 
+
+
 <script type="application/shiny-prerendered" data-context="server">
 `tutorial-exercise-set_species_demo_1-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-set_species_demo_1-code-editor`)), session)
 output$`tutorial-exercise-set_species_demo_1-output` <- renderUI({
   `tutorial-exercise-set_species_demo_1-result`()
 })
 </script>
-
-
+ 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::store_exercise_cache(structure(list(label = "set_species_demo_1", global_setup = structure(c("library(learnr)", 
-"library(malariasimulation)", "library(dplyr)", "library(ggplot2)", 
-"knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(label = "setup", 
-    include = FALSE)), setup = NULL, chunks = list(list(label = "set_species_demo_1", 
-    code = "\n# View the parameter set for An. funestus:\nfun_params\n\n# ... and view the associated helper files:\n?fun_params\n", 
-    opts = list(label = "\"set_species_demo_1\"", exercise = "TRUE"), 
-    engine = "r")), code_check = NULL, error_check = NULL, check = NULL, 
-    solution = NULL, tests = NULL, options = list(eval = FALSE, 
-        echo = TRUE, results = "markup", tidy = FALSE, tidy.opts = NULL, 
-        collapse = FALSE, prompt = FALSE, comment = NA, highlight = FALSE, 
-        size = "normalsize", background = "#F7F7F7", strip.white = TRUE, 
-        cache = 0, cache.path = "bednets_cache/html/", cache.vars = NULL, 
-        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
-        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
-        fig.align = "default", fig.path = "bednets_files/figure-html/", 
+"library(malariasimulation)", "library(dplyr)", "library(tidyr)", 
+"library(ggplot2)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
+    label = "setup", include = FALSE)), setup = NULL, chunks = list(
+    list(label = "set_species_demo_1", code = "\n# View the parameter set for An. funestus:\nfun_params\n\n# ... and view the associated helper files:\n?fun_params\n", 
+        opts = list(label = "\"set_species_demo_1\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "bednets_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "bednets_files/figure-html/", 
         dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
         fig.width = 6.5, fig.height = 4, fig.env = "figure", 
         fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
@@ -617,31 +615,31 @@ learnr:::store_exercise_cache(structure(list(label = "set_species_demo_1", globa
     engine = "r", version = "4"), class = c("r", "tutorial_exercise"
 )))
 </script>
- 
+
+
 <script type="application/shiny-prerendered" data-context="server">
 `tutorial-exercise-set_species_demo_2-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-set_species_demo_2-code-editor`)), session)
 output$`tutorial-exercise-set_species_demo_2-output` <- renderUI({
   `tutorial-exercise-set_species_demo_2-result`()
 })
 </script>
-
-
+ 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::store_exercise_cache(structure(list(label = "set_species_demo_2", global_setup = structure(c("library(learnr)", 
-"library(malariasimulation)", "library(dplyr)", "library(ggplot2)", 
-"knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(label = "setup", 
-    include = FALSE)), setup = NULL, chunks = list(list(label = "set_species_demo_2", 
-    code = "\n# Load the base parameter set:\nparameters <- get_parameters(overrides = list(human_population = 1000))\n\n# Load the parameters for the mosquito species\nparameters <- set_species(parameters = parameters,\n                          species = list(gamb_params, steph_params),\n                          proportions = c(0.7,0.3))\n", 
-    opts = list(label = "\"set_species_demo_2\"", exercise = "TRUE"), 
-    engine = "r")), code_check = NULL, error_check = NULL, check = NULL, 
-    solution = NULL, tests = NULL, options = list(eval = FALSE, 
-        echo = TRUE, results = "markup", tidy = FALSE, tidy.opts = NULL, 
-        collapse = FALSE, prompt = FALSE, comment = NA, highlight = FALSE, 
-        size = "normalsize", background = "#F7F7F7", strip.white = TRUE, 
-        cache = 0, cache.path = "bednets_cache/html/", cache.vars = NULL, 
-        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
-        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
-        fig.align = "default", fig.path = "bednets_files/figure-html/", 
+"library(malariasimulation)", "library(dplyr)", "library(tidyr)", 
+"library(ggplot2)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
+    label = "setup", include = FALSE)), setup = NULL, chunks = list(
+    list(label = "set_species_demo_2", code = "\n# Load the base parameter set:\nparameters <- get_parameters(overrides = list(human_population = 1000))\n\n# Load the parameters for the mosquito species\nparameters <- set_species(parameters = parameters,\n                          species = list(gamb_params, steph_params),\n                          proportions = c(0.7,0.3))\n", 
+        opts = list(label = "\"set_species_demo_2\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "bednets_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "bednets_files/figure-html/", 
         dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
         fig.width = 6.5, fig.height = 4, fig.env = "figure", 
         fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
@@ -661,31 +659,31 @@ learnr:::store_exercise_cache(structure(list(label = "set_species_demo_2", globa
     engine = "r", version = "4"), class = c("r", "tutorial_exercise"
 )))
 </script>
- 
+
+
 <script type="application/shiny-prerendered" data-context="server">
 `tutorial-exercise-set_species_demo_3-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-set_species_demo_3-code-editor`)), session)
 output$`tutorial-exercise-set_species_demo_3-output` <- renderUI({
   `tutorial-exercise-set_species_demo_3-result`()
 })
 </script>
-
-
+ 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::store_exercise_cache(structure(list(label = "set_species_demo_3", global_setup = structure(c("library(learnr)", 
-"library(malariasimulation)", "library(dplyr)", "library(ggplot2)", 
-"knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(label = "setup", 
-    include = FALSE)), setup = NULL, chunks = list(list(label = "set_species_demo_3", 
-    code = "\n# Load the base parameter set:\nparameters <- get_parameters(overrides = list(human_population = 1000))\n\n# Load the parameters for the mosquito species\nparameters <- set_species(parameters = parameters,\n                          species = list(gamb_params, steph_params),\n                          proportions = c(0.7,0.3))\n\n# Specify a bed net campaign\nparameters <- set_bednets(parameters = parameters,\n                          timesteps = c(1, 4) * 365,\n                          coverages = c(0.5, 0.5),\n                          retention = 5 * 365,\n                          dn0 = matrix(c(0.533, 0.533, 0.533, 0.533), nrow = 2, ncol = 1),\n                          rn =  matrix(c(0.56, 0.56, 0.56, 0.56), nrow = 2, ncol = 1),\n                          rnm =  matrix(c(0.24, 0.24, 0.24, 0.24), nrow = 2, ncol = 1), \n                          gamman =  rep(2.64 * 365, 2))\n\n# Equilibrate the model parameters:\nparameters <- set_equilibrium(parameters = parameters, init_EIR = 8)\n\nsimulation_output <- run_simulation(timesteps = 7 * 365, \n                                    parameters = parameters)\n\n# Plot the mosquito population through time:\nsimulation_output |>\n  mutate(total_mosquito_population = Sm_gamb_count + Im_gamb_count + Pm_gamb_count) |>\n  ggplot(aes(x = timestep, y = total_mosquito_population)) +\n  geom_line(linewidth = 1.2, colour = \"deepskyblue2\") +\n  theme_bw() +\n  labs(x = \"Time (days)\", y = \"Adult Female Mosquito Population Size\") +\n  scale_y_continuous(limits = c(0, 7500)) +\n  geom_vline(xintercept = c(365, 1460), linetype = \"dashed\")\n\n# Plot the mosquito population through time:\nsimulation_output |>\n  mutate(pfpr210 = n_detect_lm_730_3650 / n_730_3650) |>\n  ggplot(aes(x = timestep, y = pfpr210)) +\n  geom_line(linewidth = 1.2, colour = \"brown2\") +\n  theme_bw() +\n  labs(x = \"Time (days)\", y = \"Prevalence (2-10)\") +\n  scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +\n  scale_x_continuous(expand = c(0, 0))\n", 
-    opts = list(label = "\"set_species_demo_3\"", exercise = "TRUE"), 
-    engine = "r")), code_check = NULL, error_check = NULL, check = NULL, 
-    solution = NULL, tests = NULL, options = list(eval = FALSE, 
-        echo = TRUE, results = "markup", tidy = FALSE, tidy.opts = NULL, 
-        collapse = FALSE, prompt = FALSE, comment = NA, highlight = FALSE, 
-        size = "normalsize", background = "#F7F7F7", strip.white = TRUE, 
-        cache = 0, cache.path = "bednets_cache/html/", cache.vars = NULL, 
-        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
-        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
-        fig.align = "default", fig.path = "bednets_files/figure-html/", 
+"library(malariasimulation)", "library(dplyr)", "library(tidyr)", 
+"library(ggplot2)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
+    label = "setup", include = FALSE)), setup = NULL, chunks = list(
+    list(label = "set_species_demo_3", code = "\n# Load the base parameter set:\nparameters <- get_parameters(overrides = list(human_population = 1000))\n\n# Load the parameters for the mosquito species\nparameters <- set_species(parameters = parameters,\n                          species = list(gamb_params, steph_params),\n                          proportions = c(0.7,0.3))\n\n# Specify a bed net campaign\nparameters <- set_bednets(parameters = parameters,\n                          timesteps = c(1, 4) * 365,\n                          coverages = c(0.5, 0.5),\n                          retention = 5 * 365,\n                          dn0 = matrix(c(0.533, 0.533, 0.533, 0.533), nrow = 2, ncol = 2),\n                          rn =  matrix(c(0.56, 0.56, 0.56, 0.56), nrow = 2, ncol = 2),\n                          rnm =  matrix(c(0.24, 0.24, 0.24, 0.24), nrow = 2, ncol = 2), \n                          gamman =  rep(2.64 * 365, 2))\n\n# Equilibrate the model parameters:\nparameters <- set_equilibrium(parameters = parameters, init_EIR = 8)\n\n# Run the simulation:\nsimulation_output <- run_simulation(timesteps = 7 * 365, \n                                    parameters = parameters)\n\n# Plot the mosquito population through time:\nsimulation_output |>\n  mutate(gamb_total = Sm_gamb_count + Im_gamb_count + Pm_gamb_count,\n         steph_total = Sm_steph_count + Im_steph_count + Pm_steph_count) |>\n  select(timestep, gamb_total, steph_total) |>\n  pivot_longer(cols = c(gamb_total, steph_total), names_to = \"Species\", values_to = \"Count\") |>\n  ggplot(aes(x = timestep, y = Count, colour = Species)) +\n  geom_line(linewidth = 1.2) +\n  theme_bw() +\n  labs(x = \"Time (days)\", y = \"Number of Adult Female Mosquitoes\") +\n  scale_y_continuous(limits = c(0, 7500)) +\n  geom_vline(xintercept = c(365, 1460), linetype = \"dashed\")\n", 
+        opts = list(label = "\"set_species_demo_3\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "bednets_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "bednets_files/figure-html/", 
         dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
         fig.width = 6.5, fig.height = 4, fig.env = "figure", 
         fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
@@ -703,26 +701,21 @@ learnr:::store_exercise_cache(structure(list(label = "set_species_demo_3", globa
         "", "# Specify a bed net campaign", "parameters <- set_bednets(parameters = parameters,", 
         "                          timesteps = c(1, 4) * 365,", 
         "                          coverages = c(0.5, 0.5),", 
-        "                          retention = 5 * 365,", "                          dn0 = matrix(c(0.533, 0.533, 0.533, 0.533), nrow = 2, ncol = 1),", 
-        "                          rn =  matrix(c(0.56, 0.56, 0.56, 0.56), nrow = 2, ncol = 1),", 
-        "                          rnm =  matrix(c(0.24, 0.24, 0.24, 0.24), nrow = 2, ncol = 1), ", 
+        "                          retention = 5 * 365,", "                          dn0 = matrix(c(0.533, 0.533, 0.533, 0.533), nrow = 2, ncol = 2),", 
+        "                          rn =  matrix(c(0.56, 0.56, 0.56, 0.56), nrow = 2, ncol = 2),", 
+        "                          rnm =  matrix(c(0.24, 0.24, 0.24, 0.24), nrow = 2, ncol = 2), ", 
         "                          gamman =  rep(2.64 * 365, 2))", 
         "", "# Equilibrate the model parameters:", "parameters <- set_equilibrium(parameters = parameters, init_EIR = 8)", 
-        "", "simulation_output <- run_simulation(timesteps = 7 * 365, ", 
+        "", "# Run the simulation:", "simulation_output <- run_simulation(timesteps = 7 * 365, ", 
         "                                    parameters = parameters)", 
         "", "# Plot the mosquito population through time:", "simulation_output |>", 
-        "  mutate(total_mosquito_population = Sm_gamb_count + Im_gamb_count + Pm_gamb_count) |>", 
-        "  ggplot(aes(x = timestep, y = total_mosquito_population)) +", 
-        "  geom_line(linewidth = 1.2, colour = \"deepskyblue2\") +", 
-        "  theme_bw() +", "  labs(x = \"Time (days)\", y = \"Adult Female Mosquito Population Size\") +", 
+        "  mutate(gamb_total = Sm_gamb_count + Im_gamb_count + Pm_gamb_count,", 
+        "         steph_total = Sm_steph_count + Im_steph_count + Pm_steph_count) |>", 
+        "  select(timestep, gamb_total, steph_total) |>", "  pivot_longer(cols = c(gamb_total, steph_total), names_to = \"Species\", values_to = \"Count\") |>", 
+        "  ggplot(aes(x = timestep, y = Count, colour = Species)) +", 
+        "  geom_line(linewidth = 1.2) +", "  theme_bw() +", "  labs(x = \"Time (days)\", y = \"Number of Adult Female Mosquitoes\") +", 
         "  scale_y_continuous(limits = c(0, 7500)) +", "  geom_vline(xintercept = c(365, 1460), linetype = \"dashed\")", 
-        "", "# Plot the mosquito population through time:", "simulation_output |>", 
-        "  mutate(pfpr210 = n_detect_lm_730_3650 / n_730_3650) |>", 
-        "  ggplot(aes(x = timestep, y = pfpr210)) +", "  geom_line(linewidth = 1.2, colour = \"brown2\") +", 
-        "  theme_bw() +", "  labs(x = \"Time (days)\", y = \"Prevalence (2-10)\") +", 
-        "  scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +", 
-        "  scale_x_continuous(expand = c(0, 0))", ""), out.width.px = 624, 
-        out.height.px = 384, params.src = "set_species_demo_3, exercise = TRUE", 
+        ""), out.width.px = 624, out.height.px = 384, params.src = "set_species_demo_3, exercise = TRUE", 
         fig.num = 0, exercise.df_print = "paged", exercise.checker = "NULL"), 
     engine = "r", version = "4"), class = c("r", "tutorial_exercise"
 )))
@@ -735,9 +728,10 @@ learnr:::store_exercise_cache(structure(list(label = "set_species_demo_3", globa
 <!--/html_preserve-->
 <!--html_preserve-->
 <script type="application/shiny-prerendered" data-context="execution_dependencies">
-{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63]}},"value":[{"type":"character","attributes":{},"value":["backports","base","bslib","cachem","checkmate","cli","colorspace","commonmark","compiler","datasets","digest","dplyr","ellipsis","evaluate","fansi","fastmap","fontawesome","generics","ggplot2","glue","graphics","grDevices","grid","gtable","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","later","learnr","lifecycle","magrittr","malariasimulation","markdown","MASS","methods","mime","munsell","pillar","pkgconfig","promises","R6","Rcpp","rlang","rmarkdown","rprojroot","rstudioapi","sass","scales","shiny","stats","tibble","tidyselect","tools","utf8","utils","vctrs","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["1.4.1","4.4.0","0.7.0","1.0.8","2.3.1","3.6.2","2.1-0","1.9.1","4.4.0","4.4.0","0.6.35","1.1.4","0.3.2","0.23","1.0.6","1.1.1","0.5.2","0.1.3","3.5.1","1.7.0","4.4.0","4.4.0","4.4.0","0.3.5","0.5.8.1","1.6.4","1.6.15","0.1.4","1.8.8","1.46","1.3.2","0.11.5","1.0.4","2.0.3","1.6.1","1.12","7.3-60.2","4.4.0","0.12","0.5.1","1.9.0","2.0.3","1.3.0","2.5.1","1.0.12","1.1.3","2.26","2.0.4","0.16.0","0.4.9","1.3.0","1.8.1.1","4.4.0","3.2.1","1.2.1","4.4.0","1.2.4","4.4.0","0.6.5","3.0.0","0.43","1.8-4","2.3.8"]}]}]}
+{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65]}},"value":[{"type":"character","attributes":{},"value":["backports","base","bslib","cachem","checkmate","cli","colorspace","commonmark","compiler","datasets","digest","dplyr","ellipsis","evaluate","fansi","fastmap","fontawesome","generics","ggplot2","glue","graphics","grDevices","grid","gtable","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","later","learnr","lifecycle","magrittr","malariasimulation","markdown","MASS","methods","mime","munsell","pillar","pkgconfig","promises","purrr","R6","Rcpp","rlang","rmarkdown","rprojroot","rstudioapi","sass","scales","shiny","stats","tibble","tidyr","tidyselect","tools","utf8","utils","vctrs","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["1.4.1","4.4.0","0.7.0","1.0.8","2.3.1","3.6.2","2.1-0","1.9.1","4.4.0","4.4.0","0.6.35","1.1.4","0.3.2","0.23","1.0.6","1.1.1","0.5.2","0.1.3","3.5.1","1.7.0","4.4.0","4.4.0","4.4.0","0.3.5","0.5.8.1","1.6.4","1.6.15","0.1.4","1.8.8","1.46","1.3.2","0.11.5","1.0.4","2.0.3","1.6.1","1.12","7.3-60.2","4.4.0","0.12","0.5.1","1.9.0","2.0.3","1.3.0","1.0.2","2.5.1","1.0.12","1.1.3","2.26","2.0.4","0.16.0","0.4.9","1.3.0","1.8.1.1","4.4.0","3.2.1","1.3.1","1.2.1","4.4.0","1.2.4","4.4.0","0.6.5","3.0.0","0.43","1.8-4","2.3.8"]}]}]}
 </script>
 <!--/html_preserve-->
+</div>
 </div>
 
 </article> <!-- topics -->

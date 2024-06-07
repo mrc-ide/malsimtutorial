@@ -13,16 +13,20 @@ library(ggplot2)
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Introduction
+# Introduction
 
-Another widely used intervention that can be simulated using `malariasimulation` is the distribution of insecticidal bed nets (ITNs/LLINs). `malariasimulation` allows the users to tune a number of important components of both the bed nets to be distributed (e.g. efficacy, longevity) and the way in which they are distriubted (e.g. timing, coverage, and target population). In this tutorial, we will build on what we have learnt so far to learn how to simulate bed net distribution campaigns.
+Another widely used intervention that can be simulated using `malariasimulation` is the distribution of insecticide treated bed nets (ITNs/LLINs). `malariasimulation` allows the users to tune a number of important components of both the bed nets to be distributed (e.g. efficacy, longevity) and the way in which they are distributed (e.g. timing, coverage, and target population). In this tutorial, we will build on what we have learnt so far to learn how to simulate bed net distribution campaigns.
 
-To simulate the distribution of bed nets, there are 4 steps:
+![](images/bednet_simulation_workflow.png){width=100%}
 
-1.  Load the base set of malariasimulation parameters (`get_parameters()`)
-2.  Specify the bed net parameters (`set_bednets()`)
-3.  Equilibrate the parameter set to an initial EIR (`set_equilibrium()`)
-4.  Run the simulation (`run_simulation()`)
+To simulate the distribution of bed nets, there are six steps:
+
+1. Load the base set of malariasimulation parameters (`get_parameters()`)
+2. Set the vector community (`set_species()`)
+3. Specify the bed net parameters (`set_bednets()`)
+4. Equilibrate the parameter set to an initial EIR (`set_equilibrium()`)
+5. Run the simulation (`run_simulation()`)
+6. Process the simulation outputs
 
 ## Specifying a simple bed net campaign
 
@@ -41,7 +45,7 @@ The `set_bednets()` function requires the user to supply 8 arguments:
 
 Note that the `dn0`, `rn`, and `rnm` arguments require matrices with a column for each timestep a bed net parameter update is scheduled, and a row for each species being simulated. By default, `malariasimulation` simulates a mosquito population with a single species, *An. gambiae*, but additional species can be added using `set_species()` (see Mosquito Species vignette for a tutorial). Similarly, the vector of `coverages` must have a value for each timestep bed net events are scheduled for (i.e. `length(timesteps) == length(coverages)`).
 
-Let's take a look at a simple example of how to use `set_bednets()` to simulate bed net distributions when a single species of mosquito is simulated:
+Let's take a look at a simple example of how to use `set_bednets()` to simulate bed net distributions when a single species of mosquito is simulated. As the default behaviour for malariasimulation is to simulate a mosquito population composed of only *An. gambiae*, we do not need to call `set_species()` in this instance.
 
 ```{r set_bednets_example-1, exercise = TRUE}
 
@@ -66,12 +70,12 @@ Here, we have specified a bed net campaign involving two distribution events, on
 quiz(caption = "Parameters Qs",
      question("What mosquito death rate (dn0) have we specified in the chunk above?",
               answer("365"),
-              answer("0.56", correct = TRUE),
+              answer("0.533", correct = TRUE),
               answer("0.24"),
               answer("0"), allow_retry = T),
      question("How many columns must the matrix inputs for dn0, rn, and rnm contain if we specify bed net events to be updated 5 times (i.e. we want parameters to be updated on 5 timesteps)?",
               answer("3"),
-              answer("Depends on the number of mosquito species"),
+              answer("It depends on the number of mosquito species"),
               answer("1"),
               answer("5", correct = TRUE))
 )
@@ -115,7 +119,7 @@ simulation_output |>
 
 # Plot the mosquito population through time:
 simulation_output |>
-  mutate(pfpr210 = n_detect_lm_730_3650 / n_730_3650) |>
+  mutate(pfpr210 = n_detect_730_3650 / n_730_3650) |>
   ggplot(aes(x = timestep, y = pfpr210)) +
   geom_line(linewidth = 1.2, colour = "brown2") +
   theme_bw() +
@@ -129,7 +133,7 @@ Looking at the plots, we can see that the net distribution events (black dashed 
 
 ## Specifying a campaign when simulating multiple mosquito species
 
-The default behaviour is for `malariasimulation` to simulate a single mosquito species, *Anopheles gambiae*. However, as we've discussed, `malariasimulation` supports the simulation of settings with multiple mosquito species, and has in-built parameter sets for *An. funestus* (`fun_params`), *An. arabiensis* (`arab_params`), and *An. stephensi* (`steph_params`). In this section, we'll see how to set up the same bed net campaign we've just used, but with two vector species.
+As mentioned, the default behaviour is for `malariasimulation` to simulate a single mosquito species, *Anopheles gambiae*. However, malariasimulation` supports the simulation of settings with multiple mosquito species, and has in-built parameter sets for *An. funestus* (`fun_params`), *An. arabiensis* (`arab_params`), and *An. stephensi* (`steph_params`). In this section, we'll see how to set up the same bed net campaign we've just used, but with two vector species.
 
 We won't focus on the parameters in these sets today (although feel free to ask later), but we can view the parameter sets:
 
@@ -143,13 +147,13 @@ fun_params
 
 ```
 
-Similar to `set_drugs()` in the treatment exercise, the `set_species()` function is used to load the mosquito species parameters of interest into our list of `malariasimulation` parameters. The `set_species()` function has three arguments:
+The `set_species()` function is used to load the mosquito species parameters of interest into our list of `malariasimulation` parameters. The `set_species()` function has three arguments:
 
-1. `parameters`: A list of malariasimulation parameters (as established using `get_parameters()`)
-2. `species`: A list containing the mosquito species parameters
-3. `proportions`: The proportion of the total mosquito species represented by each species in `species` (must therefore sum to 1)
+1.  `parameters`: A list of malariasimulation parameters (as established using `get_parameters()`)
+2.  `species`: A list containing the mosquito species parameters
+3.  `proportions`: The proportion of the total mosquito species represented by each species in `species` (must therefore sum to 1)
 
-Below is an example of how to use `set_species()` to specify a simulation with two species, *An. gambiae* and *An. stephensi*. Note that, as with `set_drugs()`, the mosquito species must be passed to the function as a list: 
+Below is an example of how to use `set_species()` to specify a simulation with two species, *An. gambiae* and *An. stephensi*. Note that, as with `set_drugs()`, the mosquito species must be passed to the function as a list:
 
 ```{r set_species_demo_2, exercise = TRUE}
 
@@ -208,4 +212,3 @@ simulation_output |>
 ```
 
 We have plotted the number of adult mosquitoes of each species through time. What do you notice about the effect of the bed net distributions on the *An. gambiae* and *An. stephensi*? Does the information in `?gamb_params` and/or `?steph_params` provide any clues?
-
