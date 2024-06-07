@@ -13,6 +13,61 @@ library(malariasimulation)
 
 
 knitr::opts_chunk$set(cache=FALSE)
+
+# objects and variables needed across multiple chunks
+# baseline outputs
+year<- 365
+sim_length <- 3 * year
+human_population <- 10000
+starting_EIR <- 20
+
+simparams <- get_parameters(list(
+    human_population = human_population,
+    clinical_incidence_rendering_min_ages = 0,
+    clinical_incidence_rendering_max_ages = 5 * year,
+    individual_mosquitoes = FALSE
+  )
+)
+
+simparams <- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)
+# Run a model with no interventions in a setting with no seasonality
+output_control <- run_simulation(timesteps = sim_length, parameters = simparams)
+
+
+# plot clinical incidence over time
+incidence_plot<- function(full_output){
+  
+  ggplot(data= full_output, mapping = aes(x= time_year, y= clinical_incidence, color = scenario, fill= scenario))+
+  geom_line(alpha = 0.4) +
+  geom_smooth(method = 'loess', span= 0.25) +
+  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE)+
+    theme_bw()+
+  scale_color_manual(values= c("#E69F00", "#56B4E9"))+
+  scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
+  labs(x = "Time (years)", 
+       y = "Clinical incidence (per 1000 children aged 0-5)",
+       color= 'Scenario',
+       fill = 'Scenario')
+
+}
+
+prevalence_plot<- function(full_output){
+
+
+# plot parasite prevalence over time
+ggplot(data= full_output, mapping = aes(x= time_year, y= pfpr, color = scenario, fill= scenario))+
+  geom_line() +
+  ylim(c(0, 1))+
+  geom_vline(xintercept = 1, linetype= 'dashed', alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced
+  theme_bw()+
+  scale_color_manual(values= c("#E69F00", "#56B4E9"))+
+  scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
+  labs(x = "Time (years)", 
+       y = expression(paste(italic(Pf),"PR"[2-10])),
+       color = 'Scenario',
+       fill= 'Scenario')
+}
+
 ```
 
 ## Vaccination
@@ -22,6 +77,10 @@ Now that you have been introduced to malariasimulation, we will review a few vac
 We can use malariasimulation to implement a theoretical transmission blocking vaccine (TBV) or a pre-erythrocytic vaccine. Vaccines can be administered using either a mass vaccination strategy or an age-based strategy. 
 
 To carry this out, we can utilize the functions `set_pev_epi()` or `set_mass_pev().` For the purposes of this training, we will focus on the administration of a pre-erythrocytic vaccine (IE, RTS,S or R21).
+
+Here is a schematic of what we will carry out:
+
+![](images/vaccines_malsim_tutorial.png){width=100%}
 
 First, let's look at the vaccine efficacy parameters for RTS,S. These are saved within malariasimulation:
 
@@ -78,7 +137,14 @@ head(output_control)
 
 ## Mass vaccination strategy
 
-We can implement a mass vaccination strategy in which all people between 5 months and 50 years old are vaccinated with 3 doses of RTS,S, followed by a booster 12 months after:
+We can implement a mass vaccination strategy in which all people between 5 months and 50 years old are vaccinated with 3 doses of RTS,S, followed by a booster 12 months after.
+
+We will carry out the following steps:
+
+- Parameterize the vaccine strategy
+- Run the simulation
+- Calculate incidence and parasite prevalence
+- Visualize incidence and parasite prevalence over time
 
 ```{r mass_vaccination, exercise = TRUE}
 month<- 30
@@ -102,26 +168,22 @@ output <- run_simulation(timesteps = sim_length, parameters = rtssmassparams)
 
 # Look at model output
 head(output)
-```
-
-Let's process the model output to see how prevalence + incidence vary over time.
-
-```{r process_outputs, exercise =TRUE}
 
 
+# process the model output to see how prevalence + incidence vary over time
 # make an identifying variable for vaccine +non-vaccine scenario
 output$scenario<- 'vaccine'
 output_control$scenario<- 'no vaccine'
 
 # bind control and vaccine outputs together
-full_output<- bind_rows(output, output_control)
+full_output<- dplyr::bind_rows(output, output_control)
 
 # calculate time in years
 full_output$time_year <- full_output$timestep / year
-vaccinetime <- 1   # the year the vaccine is introduced into the population
 
 # calculate incidence in children under 5 here
 full_output$clinical_incidence<- 1000* full_output$n_inc_clinical_0_1825 / full_output$n_0_1825
+
 # calculate parasite prevalence
 full_output$pfpr<- full_output$n_detect_730_3650/full_output$n_730_3650
 
@@ -132,7 +194,7 @@ incidence_plot<- function(full_output){
   ggplot(data= full_output, mapping = aes(x= time_year, y= clinical_incidence, color = scenario, fill= scenario))+
   geom_line(alpha = 0.4) +
   geom_smooth(method = 'loess', span= 0.25) +
-  geom_vline(xintercept = vaccinetime, linetype= 'dotted', alpha = 10, show.legend = TRUE)+
+  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced
     theme_bw()+
   scale_color_manual(values= c("#E69F00", "#56B4E9"))+
   scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
@@ -145,21 +207,16 @@ incidence_plot<- function(full_output){
 
   
 incidence_plot(full_output)
-```
 
-Now let's plot parasite prevalence:
-
-```{r plot_pfpr, exercise = TRUE}
-
+# plot parasite prevalence as well
 prevalence_plot<- function(full_output){
 
 
 # plot parasite prevalence over time
 ggplot(data= full_output, mapping = aes(x= time_year, y= pfpr, color = scenario, fill= scenario))+
   geom_line() +
-  #geom_smooth(method = 'loess', span= 0.25) +
   ylim(c(0, 1))+
-  geom_vline(xintercept = vaccinetime, linetype= 'dashed', alpha = 10, show.legend = TRUE)+
+  geom_vline(xintercept = 1, linetype= 'dashed', alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced
   theme_bw()+
   scale_color_manual(values= c("#E69F00", "#56B4E9"))+
   scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
@@ -200,26 +257,29 @@ Plot incidence and the doses delivered for this model.
 
 ```
 
+<div id="filter-hint">
+**Hint:** Use `set_mass_pev()` and modify the arguments based on the previous exercise.
+</div>
+
 ```{r mass_vax_example_questions, echo= FALSE}
 quiz(caption = "Mass Vaccination Example",
           question("What modelled incidence does the vaccine model achieve 1.5 years into the simulation??",
               answer("5 clinical cases per 1000"),
               answer("2.5 clinical cases per 1000", correct = TRUE),
               answer("4 clinical cases per 1000"),
-              answer("2.0 clinical cases per 1000"), correct = 'Correct-- notice how clinical incidence reaches a low during this period.', allow_retry = T),
-     question("About how many dose ~3s are administered in the vaccine simulation?",
-              answer("750"),
-              answer("1500"),
-              answer("1200", correct = TRUE),
-              answer("400"), allow_retry = T)
+              answer("2.0 clinical cases per 1000"), correct = 'Correct-- notice how clinical incidence reaches a low during this period.', allow_retry = T)
      )
 
 ```
+
 ## Age-based vaccination
 
 Here, we will try an age-based strategy. With an age-based vaccine strategy, vaccines are administered to people at specific ages, rather than to the whole population at once.
 
 ```{r age_based, exercise = TRUE}
+month<- 30
+year<- 365
+
 # Add RTS,S EPI strategy
 rtssepiparams <- set_pev_epi(
   simparams,
@@ -233,17 +293,22 @@ rtssepiparams <- set_pev_epi(
   booster_profile = list(rtss_booster_profile) # We will model implementation of the RTSS booster.
 )
 
-output <- run_simulation(timesteps = sim_length * 2, parameters = rtssepiparams)
+output <- run_simulation(timesteps = sim_length, parameters = rtssepiparams)
 
 
 # now process and plot as we saw previously
-output$scenario<- 'vaccine' # make an identifying variable for vaccine scenario
-full_output<- bind_rows(output, output_control) # bind control and vaccine outputs together
+# make an identifying variable for vaccine + nonvaccine scenario
+output$scenario<- 'vaccine' 
+output_control$scenario<- 'no vaccine'
+
+full_output<- dplyr::bind_rows(output, output_control) # bind control and vaccine outputs together
 full_output$time_year <- full_output$timestep / 365 # calculate time in years
-vaccinetime <- 1   # the year the vaccine is introduced into the population
 
 # calculate incidence in children under 5 here
 full_output$clinical_incidence<- 1000* full_output$n_inc_clinical_0_1825 / full_output$n_0_1825
+
+# calculate parasite prevalence
+full_output$pfpr<- full_output$n_detect_730_3650/full_output$n_730_3650
 
 
 incidence_plot(full_output)
@@ -275,9 +340,8 @@ Plot incidence and the doses delivered for this model.
 quiz(caption = "Age-based  example",
      question("At what point does parasite prevalence begin to diverge between vaccine and non-vaccine scenario?",
               answer("3 years in", correct = TRUE),
-              answer("5 years in"),
               answer("4 years in"),
-              answer("7 years in"), correct = "Correct-- given that vaccine coverage is lower in this scenario, we only begin to see noticable vaccine impact 3 years into the simulation 2 years after the vaccine is introduced.", allow_retry = T))
+              answer("2 years in"), correct = "Correct-- given that vaccine coverage is lower in this scenario, we only begin to see noticable vaccine impact 3 years into the simulation 2 years after the vaccine is introduced.", allow_retry = T))
 
 ```
 
