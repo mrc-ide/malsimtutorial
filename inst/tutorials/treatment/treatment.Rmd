@@ -24,7 +24,7 @@ To simulate clinical treatment in malariasimulation, there are four main steps:
 1.  Load the base set of malariasimulation parameters (`get_parameters()`)
 2.  Load parameters for the drug(s) of choice into our list of model parameters (`set_drugs()`)
 3.  Specify the clinical treatment coverage for each drug through time (`set_clinical_treatment()`)
-4.  Tune the parameters to the equilibrial state (`set_equilibrium()`) 
+4.  Tune the parameters to the equilibrial state (`set_equilibrium()`)
 5.  Run the simulation (`run_simulation()`)
 
 Using these four steps, we can simulate clinical treatment regimes that span from the very simple (single drug at a single coverage level through time) to the quite complex (multiple drugs with time-varying coverages). As we saw earlier, the first step when using malariasimulation is to load a set of parameters using `get_parameters()`:
@@ -60,6 +60,8 @@ The parameters in these sets are:
 3.  drug_prophylaxis_shape: Shape parameter for a Weibull distribution describing an individuals prophylactic protection over time following treatment
 4.  drug_prophylaxis_scale: Scale parameter for a Weibull distribution describing an individuals prophylactic protection over time following treatment
 
+In the code chunk below, view the parameter sets for DHA-PQP and SP-AQ:
+
 ```{r view-drug-params, exercise = TRUE}
 
 # View the parameters for DHA-PQP and SP-AQ:
@@ -67,12 +69,16 @@ The parameters in these sets are:
 
 ```
 
-```{r drug-params-quiz, exercise = TRUE}
-
+```{r drug-params-quiz}
+SP_AQ_params
 quiz(
   question("The efficacy of DHA-PQP in the DHA_PQP_params set is 0.95000",
     answer("TRUE", correct = TRUE),
     answer("FALSE")
+  ),
+  question("The drug_rel_c of SP-AQ in the SP_AQ_params set is 4.30",
+    answer("TRUE"),
+    answer("FALSE", correct = TRUE)
   )
 )
 
@@ -88,7 +94,7 @@ parameters <- get_parameters()
 # Load the parameters for artemether lumefantrine into the parameters
 parameters <- set_drugs(parameters = parameters, drugs = list(AL_params))
 
-# View the parameters for DHA-PQP and SP-AQ:
+# View the parameters for AL:
 parameters$drug_efficacy
 
 ```
@@ -101,7 +107,7 @@ The final line of the chunk above shows us how we can view the drug parameters c
 parameters <- get_parameters() 
 
 # Load the parameters for artemether lumefantrine into the parameters
-parameters <- set_drugs(parameters = parameters, drugs = list(AL_params))
+parameters <- set_drugs(parameters = parameters, drugs = list(DHA_PQP_params))
 
 # View the drug_rel_c parameter for DHA-PQP:
 
@@ -110,7 +116,7 @@ parameters <- set_drugs(parameters = parameters, drugs = list(AL_params))
 
 ## 3. Setting clinical treatment
 
-Now that we know how to load antimalarial drug parameters we can specify how they will be administered to the population. In malariasimulation, we parameterise clinical treatment campaigns using the `set_clinical_treatment()` function (run `?set_clinical_treatment()` to view the help file for the function). `set_clinical_treatment()` requires four arguments:
+Now that we know how to load antimalarial drug parameters we can specify how they will be administered to the population. In malariasimulation, we parameterise clinical treatment using the `set_clinical_treatment()` function (run `?set_clinical_treatment()` to view the help file for the function). `set_clinical_treatment()` requires four arguments:
 
 1.  `parameters`: A list of `malariasimulation` parameters (with parameters for drug(s) loaded using `set_drugs()`)
 2.  `drug`: The indices of the drug which we are parameterising clinical treatment for
@@ -149,7 +155,7 @@ clinical_treatment_simulation |>
 
 ```
 
-```{r quiz2, exercise = TRUE}
+```{r quiz2}
 
 quiz(
   question("Drug parameters must be loaded into set_drugs() as a list?",
@@ -163,10 +169,10 @@ quiz(
     answer("4")
   ),
    question("If we input the vector c(0, 365, 720) as the argument for timesteps into set_clinical_treatment(), which of the following vectors would NOT work for the coverages argument?",
-    answer(c(0.4, 0.5, 0.6)),
-    answer(c(0, 0, 0)),
-    answer(c(0.9, 0.4, 0.1)),
-    answer(c(0, 0.5), correct = TRUE)
+    answer("c(0.4, 0.5, 0.6)"),
+    answer("c(0, 0, 0)"),
+    answer("c(0.9, 0.4, 0.1)"),
+    answer("c(0, 0.5)", correct = TRUE)
   )
 )
 
@@ -190,7 +196,7 @@ The second simulation will use what we've learnt to simulate clinical treatment 
 4.  Increase the coverage to 0.8 at the end of the third year
 5.  Equilibrate the simulations with an initial EIR of 8
 6.  Run both simulations for 5 years
-7.  Plot the *Pf*PR[2-10] for each simulation and compare the outputs
+7.  Plot the *Pf*PR~2-10~ for each simulation and compare the outputs
 
 ```{r final-exercise, exercise=TRUE}
 
