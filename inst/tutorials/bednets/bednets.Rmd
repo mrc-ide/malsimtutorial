@@ -1,75 +1,214 @@
 ---
-title: "Tutorial"
+title: "Bednets"
 output: learnr::tutorial
 runtime: shiny_prerendered
 ---
 
 ```{r setup, include=FALSE}
 library(learnr)
+library(malariasimulation)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
+# Introduction
 
-## Topic 1
+Another widely used intervention that can be simulated using `malariasimulation` is the distribution of insecticide treated bed nets (ITNs/LLINs). `malariasimulation` allows the users to tune a number of important components of both the bed nets to be distributed (e.g. efficacy, longevity) and the way in which they are distributed (e.g. timing, coverage, and target population). In this tutorial, we will build on what we have learnt so far to learn how to simulate bed net distribution campaigns.
 
-### Exercise 
+![](images/bednet_simulation_workflow.png){width=100%}
 
-*Here's a simple exercise with an empty code chunk provided for entering the answer.*
+To simulate the distribution of bed nets, there are six steps:
 
-Write the R code required to add two plus two:
+1. Load the base set of malariasimulation parameters (`get_parameters()`)
+2. Set the vector community (`set_species()`)
+3. Specify the bed net parameters (`set_bednets()`)
+4. Equilibrate the parameter set to an initial EIR (`set_equilibrium()`)
+5. Run the simulation (`run_simulation()`)
+6. Process the simulation outputs
 
-```{r two-plus-two, exercise=TRUE}
+## Specifying a simple bed net campaign
+
+The use of bed nets as an intervention in `malariasimulation` is specified using the `set_bednets()` helper function (see ?`set_bednets()` for the helper file).
+
+The `set_bednets()` function requires the user to supply 8 arguments:
+
+1.  `parameters`: A list of malariasimulation parameters (as generated using `get_parameter)`.
+2.  `timesteps`: A vector of timesteps on which the user wants to update bed net parameters.
+3.  `coverages`: A vector of coverages, as a proportion of people to receive a bed net, for each timestep .
+4.  `retention`: The average number of days an individual keeps a given net.
+5.  `dn0`: A matrix, where each row is for a mosquito species and each column a timestep, of the average probability a mosquito is killed upon coming in to contact with a net.
+6.  `rn`: A matrix, where each row is for a mosquito species and each column a timestep, of the average probability a mosquito is repelled from feeding by a net.
+7.  `rnm`: A matrix, where each row is for a mosquito species and each column a timestep, of the minimum probability a mosquito is repelled by a net.
+8.  `gamman`: A vector containing the half-life of the insecticidal component of a bed net for each time step.
+
+Note that the `dn0`, `rn`, and `rnm` arguments require matrices with a column for each timestep a bed net parameter update is scheduled, and a row for each species being simulated. By default, `malariasimulation` simulates a mosquito population with a single species, *An. gambiae*, but additional species can be added using `set_species()` (see Mosquito Species vignette for a tutorial). Similarly, the vector of `coverages` must have a value for each timestep bed net events are scheduled for (i.e. `length(timesteps) == length(coverages)`).
+
+Let's take a look at a simple example of how to use `set_bednets()` to simulate bed net distributions when a single species of mosquito is simulated. As the default behaviour for malariasimulation is to simulate a mosquito population composed of only *An. gambiae*, we do not need to call `set_species()` in this instance.
+
+```{r set_bednets_example-1, exercise = TRUE}
+
+# Load the base parameter set:
+parameters <- get_parameters(overrides = list(human_population = 1000))
+
+# Load the bed net parameters into the parameter list using set_bednets()
+parameters <- set_bednets(parameters = parameters,
+                          timesteps = c(1, 4) * 365,
+                          coverages = c(0.5, 0.5),
+                          retention = 5 * 365,
+                          dn0 = matrix(c(0.533, 0.533), nrow = 2, ncol = 1),
+                          rn =  matrix(c(0.56, 0.56), nrow = 2, ncol = 1),
+                          rnm =  matrix(c(0.24, 0.24), nrow = 2, ncol = 1), 
+                          gamman =  rep(2.64 * 365, 2))
 
 ```
 
-### Exercise with Code
+Here, we have specified a bed net campaign involving two distribution events, one to occur after 1 year and another after 4 years, which will achieve a coverage of 50%. We are assuming that individuals will, on average, retain a bed net for 5 years (`retention`), and that each bed net has a half life (`gamman`) of \~960 days.
 
-*Here's an exercise with some prepopulated code as well as `exercise.lines = 5` to provide a bit more initial room to work.*
-
-Now write a function that adds any two numbers and then call it:
-
-```{r add-function, exercise=TRUE, exercise.lines = 5}
-add <- function() {
-  
-}
-```
-
-## Topic 2
-
-### Exercise with Hint
-
-*Here's an exercise where the chunk is pre-evaluated via the `exercise.eval` option (so the user can see the default output we'd like them to customize). We also add a "hint" to the correct solution via the chunk immediate below labeled `print-limit-hint`.*
-
-Modify the following code to limit the number of rows printed to 5:
-
-```{r print-limit, exercise=TRUE, exercise.eval=TRUE}
-mtcars
-```
-
-```{r print-limit-hint}
-head(mtcars)
-```
-
-### Quiz
-
-*You can include any number of single or multiple choice questions as a quiz. Use the `question` function to define a question and the `quiz` function for grouping multiple questions together.*
-
-Some questions to verify that you understand the purposes of various base and recommended R packages:
-
-```{r quiz}
-quiz(
-  question("Which package contains functions for installing other R packages?",
-    answer("base"),
-    answer("tools"),
-    answer("utils", correct = TRUE),
-    answer("codetools")
-  ),
-  question("Which of the R packages listed below are used to create plots?",
-    answer("lattice", correct = TRUE),
-    answer("tools"),
-    answer("stats"),
-    answer("grid", correct = TRUE)
-  )
+```{r quiz-1}
+quiz(caption = "Parameters Qs",
+     question("What mosquito death rate (dn0) have we specified in the chunk above?",
+              answer("365"),
+              answer("0.533", correct = TRUE),
+              answer("0.24"),
+              answer("0"), allow_retry = T),
+     question("How many columns must the matrix inputs for dn0, rn, and rnm contain if we specify bed net events to be updated 5 times (i.e. we want parameters to be updated on 5 timesteps)?",
+              answer("3"),
+              answer("It depends on the number of mosquito species"),
+              answer("1"),
+              answer("5", correct = TRUE))
 )
+
 ```
 
+Now that we've parameterised a bed net campaign, let's run the simulation! Note that we still include the step to equilibrate the parameters to a given level of transmission (`initial_EIR`).
+
+```{r set_bednets_example, exercise = TRUE}
+
+# Load the base parameter set:
+parameters <- get_parameters(overrides = list(human_population = 1000))
+
+# Load the bed net parameters into the parameter list using set_bednets()
+parameters <- set_bednets(parameters = parameters,
+                          timesteps = c(1, 4) * 365,
+                          coverages = c(0.5, 0.5),
+                          retention = 5 * 365,
+                          dn0 = matrix(c(0.533, 0.533), nrow = 2, ncol = 1),
+                          rn =  matrix(c(0.56, 0.56), nrow = 2, ncol = 1),
+                          rnm =  matrix(c(0.24, 0.24), nrow = 2, ncol = 1), 
+                          gamman =  rep(2.64 * 365, 2))
+
+# Equilibrate the model parameters to an initial EIR:
+parameters <- set_equilibrium(parameters = parameters, 
+                              init_EIR = 8)
+
+# Run the simulation
+simulation_output <- run_simulation(timesteps = 7 * 365, 
+                                    parameters = parameters)
+
+# Plot the mosquito population through time:
+simulation_output |>
+  mutate(total_mosquito_population = Sm_gamb_count + Im_gamb_count + Pm_gamb_count) |>
+  ggplot(aes(x = timestep, y = total_mosquito_population)) +
+  geom_line(linewidth = 1.2, colour = "deepskyblue2") +
+  theme_bw() +
+  labs(x = "Time (days)", y = "Adult Female Mosquito Population Size") +
+  scale_y_continuous(limits = c(0, 7500)) +
+  geom_vline(xintercept = c(365, 1460), linetype = "dashed")
+
+# Plot the mosquito population through time:
+simulation_output |>
+  mutate(pfpr210 = n_detect_730_3650 / n_730_3650) |>
+  ggplot(aes(x = timestep, y = pfpr210)) +
+  geom_line(linewidth = 1.2, colour = "brown2") +
+  theme_bw() +
+  labs(x = "Time (days)", y = "Prevalence (2-10)") +
+  scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
+  scale_x_continuous(expand = c(0, 0))
+
+```
+
+Looking at the plots, we can see that the net distribution events (black dashed lines) cause a rapid decline in the adult female mosquito population size which results in a decline in prevalence. We can also see that the prevalence begins to rebound between the distribution events. Think about why this is occurring. What parameter(s) might affect the rate of this recovery? Using the code chunk above, try re-running the simulation with a different net `retention` time and see how it affects what we see.
+
+## Specifying a campaign when simulating multiple mosquito species
+
+As mentioned, the default behaviour is for `malariasimulation` to simulate a single mosquito species, *Anopheles gambiae*. However, malariasimulation` supports the simulation of settings with multiple mosquito species, and has in-built parameter sets for *An. funestus* (`fun_params`), *An. arabiensis* (`arab_params`), and *An. stephensi* (`steph_params`). In this section, we'll see how to set up the same bed net campaign we've just used, but with two vector species.
+
+We won't focus on the parameters in these sets today (although feel free to ask later), but we can view the parameter sets:
+
+```{r set_species_demo_1, exercise = TRUE}
+
+# View the parameter set for An. funestus:
+fun_params
+
+# ... and view the associated helper files:
+?fun_params
+
+```
+
+The `set_species()` function is used to load the mosquito species parameters of interest into our list of `malariasimulation` parameters. The `set_species()` function has three arguments:
+
+1.  `parameters`: A list of malariasimulation parameters (as established using `get_parameters()`)
+2.  `species`: A list containing the mosquito species parameters
+3.  `proportions`: The proportion of the total mosquito species represented by each species in `species` (must therefore sum to 1)
+
+Below is an example of how to use `set_species()` to specify a simulation with two species, *An. gambiae* and *An. stephensi*. Note that, as with `set_drugs()`, the mosquito species must be passed to the function as a list:
+
+```{r set_species_demo_2, exercise = TRUE}
+
+# Load the base parameter set:
+parameters <- get_parameters(overrides = list(human_population = 1000))
+
+# Load the parameters for the mosquito species
+parameters <- set_species(parameters = parameters,
+                          species = list(gamb_params, steph_params),
+                          proportions = c(0.7,0.3))
+
+```
+
+Now that we've seen how to parameterise the model for multiple vector species, let's add a bed net campaign and run the simulation. Remember, as we're simulating multiple vector species, the matrix inputs for the `dn0`, `rn`, and `rnm` parameters will need rows for each species!
+
+```{r set_species_demo_3, exercise = TRUE}
+
+# Load the base parameter set:
+parameters <- get_parameters(overrides = list(human_population = 1000))
+
+# Load the parameters for the mosquito species
+parameters <- set_species(parameters = parameters,
+                          species = list(gamb_params, steph_params),
+                          proportions = c(0.7,0.3))
+
+# Specify a bed net campaign
+parameters <- set_bednets(parameters = parameters,
+                          timesteps = c(1, 4) * 365,
+                          coverages = c(0.5, 0.5),
+                          retention = 5 * 365,
+                          dn0 = matrix(c(0.533, 0.533, 0.533, 0.533), nrow = 2, ncol = 2),
+                          rn =  matrix(c(0.56, 0.56, 0.56, 0.56), nrow = 2, ncol = 2),
+                          rnm =  matrix(c(0.24, 0.24, 0.24, 0.24), nrow = 2, ncol = 2), 
+                          gamman =  rep(2.64 * 365, 2))
+
+# Equilibrate the model parameters:
+parameters <- set_equilibrium(parameters = parameters, init_EIR = 8)
+
+# Run the simulation:
+simulation_output <- run_simulation(timesteps = 7 * 365, 
+                                    parameters = parameters)
+
+# Plot the mosquito population through time:
+simulation_output |>
+  mutate(gamb_total = Sm_gamb_count + Im_gamb_count + Pm_gamb_count,
+         steph_total = Sm_steph_count + Im_steph_count + Pm_steph_count) |>
+  select(timestep, gamb_total, steph_total) |>
+  pivot_longer(cols = c(gamb_total, steph_total), names_to = "Species", values_to = "Count") |>
+  ggplot(aes(x = timestep, y = Count, colour = Species)) +
+  geom_line(linewidth = 1.2) +
+  theme_bw() +
+  labs(x = "Time (days)", y = "Number of Adult Female Mosquitoes") +
+  scale_y_continuous(limits = c(0, 7500)) +
+  geom_vline(xintercept = c(365, 1460), linetype = "dashed")
+
+```
+
+We have plotted the number of adult mosquitoes of each species through time. What do you notice about the effect of the bed net distributions on the *An. gambiae* and *An. stephensi*? Does the information in `?gamb_params` and/or `?steph_params` provide any clues?
