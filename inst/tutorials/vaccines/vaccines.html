@@ -14,7 +14,7 @@
 <meta name="allow-skip" content="false" />
 <meta name="learnr-version-prerender" content="0.11.5" />
 
-<title>Treatment</title>
+<title>Vaccines</title>
 
 <!-- header-includes START -->
 <!-- HEAD_CONTENT -->
@@ -109,213 +109,180 @@ if (window.hljs) {
 
 <article class="topics" id="learnr-tutorial-content">
 
-<div id="section-introduction" class="section level1">
-<h1>Introduction</h1>
-<p>Now that we know how to set up and run basic simulations using
-<code>malariasimulation</code>, we can start to think about how we build
-interventions into our simulations and visualise how they affect malaria
-transmission dynamics. One such intervention is clinical treatment, or
-case management, in which individuals that get a clinical case of
-malaria are treated with an antimalarial drug.</p>
-<p>To simulate clinical treatment in malariasimulation, there are six
-steps:</p>
-<p><img src="images/clinical_treatment_workflow.png"
+<div id="section-vaccination" class="section level2">
+<h2>Vaccination</h2>
+<p>Now that you have been introduced to malariasimulation, we will
+review a few vaccine use cases that might be helpful. This tutorial is
+largely based on the malariasimulation vaccine <a
+href="https://mrc-ide.github.io/malariasimulation/articles/Vaccines.html">vignette</a>–
+refer to this for more practice!</p>
+<p>We can use malariasimulation to implement a theoretical transmission
+blocking vaccine (TBV) or a pre-erythrocytic vaccine. Vaccines can be
+administered using either a mass vaccination strategy or an age-based
+strategy.</p>
+<p>To carry this out, we can utilize the functions
+<code>set_pev_epi()</code> or <code>set_mass_pev().</code> For the
+purposes of this training, we will focus on the administration of a
+pre-erythrocytic vaccine (IE, RTS,S or R21).</p>
+<p>Here is a schematic of what we will carry out:</p>
+<p><img src="images/vaccines_malsim_tutorial.png"
 style="width:100.0%" /></p>
-<ol style="list-style-type: decimal">
-<li>Load the base set of malariasimulation parameters
-(<code>get_parameters()</code>)</li>
-<li>Load parameters for the drug(s) of choice into our list of model
-parameters (<code>set_drugs()</code>)</li>
-<li>Specify the clinical treatment coverage for each drug through time
-(<code>set_clinical_treatment()</code>)</li>
-<li>Tune the parameters to the equilibrial state
-(<code>set_equilibrium()</code>)</li>
-<li>Run the simulation (<code>run_simulation()</code>)</li>
-<li>Process the simulation outputs</li>
-</ol>
-<p>Using these six steps, we can simulate clinical treatment regimes
-that span from the very simple (single drug at a single coverage level
-through time) to the quite complex (multiple drugs with time-varying
-coverages).</p>
-<div id="section-loading-antimalarial-drug-parameters"
-class="section level2">
-<h2>1. Loading antimalarial drug parameters</h2>
-<p>As we saw earlier, the first step when using malariasimulation is to
-load a set of parameters using <code>get_parameters()</code>:</p>
-<div class="tutorial-exercise" data-label="load-malsim-parameters"
+<p>First, let’s look at the vaccine efficacy parameters for RTS,S. These
+are saved within malariasimulation:</p>
+<div class="tutorial-exercise" data-label="efficacy_profile"
 data-completion="1" data-diagnostics="1" data-startover="1"
 data-lines="0" data-pipe="|&gt;">
-<pre class="text"><code># Establish a list of malariasimulation parameters:
-parameters &lt;- get_parameters(overrides = list(human_population = 1000))</code></pre>
+<pre class="text"><code>malariasimulation::rtss_profile # Parameters for the first three doses of RTS,S
+
+malariasimulation::rtss_booster_profile # Parameters for the fourth (booster) dose of RTS,S</code></pre>
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
-<p>The second step is to load the parameters for the drug(s) we want to
-simulate into our list of parameters. The <code>malariasimulation</code>
-package has in-built parameter sets for 3 drugs:</p>
-<ol style="list-style-type: decimal">
-<li>Artemether lumefantrine (<code>AL_params</code>)</li>
-<li>Dihydroartemisinin piperaquine (<code>DHA_PQP_params</code>)</li>
-<li>Sulfadoxine pyrimethamine (<code>SP_AQ_params</code>)</li>
-</ol>
-<p>We can view these parameter sets by simply calling them. Here are the
-parameters for artemether lumefantrine:</p>
-<div class="tutorial-exercise"
-data-label="view-inbuilt-antimalarial-parameters" data-completion="1"
-data-diagnostics="1" data-startover="1" data-lines="0"
-data-pipe="|&gt;">
-<pre class="text"><code># View the artemether lumefantrine (AL) parameter set:
-AL_params</code></pre>
-<script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
-</div>
-<p>The parameters in these sets are:</p>
-<ol style="list-style-type: decimal">
-<li>drug_efficacy: probability that treatment with the drug successfully
-clears the infection</li>
-<li>drug_rel_c: The onward infectiousness of a treated individual to a
-mosquito relative to an untreated individual</li>
-<li>drug_prophylaxis_shape: Shape parameter for a Weibull distribution
-describing an individuals prophylactic protection over time following
-treatment</li>
-<li>drug_prophylaxis_scale: Scale parameter for a Weibull distribution
-describing an individuals prophylactic protection over time following
-treatment</li>
-</ol>
-<p>In the code chunk below, view the parameter sets for DHA-PQP and
-SP-AQ:</p>
-<div class="tutorial-exercise" data-label="view-drug-params"
-data-completion="1" data-diagnostics="1" data-startover="1"
-data-lines="0" data-pipe="|&gt;">
-<pre class="text"><code># View the parameters for DHA-PQP and SP-AQ:</code></pre>
-<script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
-</div>
-<pre><code>## [1]  0.90  0.32  4.30 38.10</code></pre>
-<div class="panel-heading tutorial-quiz-title"><span data-i18n="text.quiz">Quiz</span></div>
+<p>These parameters are used to model the relationship between antibody
+titre and vaccine efficacy, based on previous modelling work conducted
+in the <a href="https://pubmed.ncbi.nlm.nih.gov/37080831/">group</a>.
+The meaning of these parameters can be found <a
+href="https://mrc-ide.github.io/malariasimulation/reference/create_pev_profile.html">here</a>
+– you will likely not need to modify them directly, but know that these
+parameters impact the magnitude and duration of vaccine impact.</p>
+<div class="panel-heading tutorial-quiz-title">Vaccine Efficacy Question</div>
 <div class="panel panel-default tutorial-question-container">
-<div data-label="drug-params-quiz-1" class="tutorial-question panel-body">
-<div id="drug-params-quiz-1-answer_container" class="shiny-html-output"></div>
-<div id="drug-params-quiz-1-message_container" class="shiny-html-output"></div>
-<div id="drug-params-quiz-1-action_button_container" class="shiny-html-output"></div>
+<div data-label="quiz1-1" class="tutorial-question panel-body">
+<div id="quiz1-1-answer_container" class="shiny-html-output"></div>
+<div id="quiz1-1-message_container" class="shiny-html-output"></div>
+<div id="quiz1-1-action_button_container" class="shiny-html-output"></div>
 <script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
 </div>
 </div>
-<div class="panel panel-default tutorial-question-container">
-<div data-label="drug-params-quiz-2" class="tutorial-question panel-body">
-<div id="drug-params-quiz-2-answer_container" class="shiny-html-output"></div>
-<div id="drug-params-quiz-2-message_container" class="shiny-html-output"></div>
-<div id="drug-params-quiz-2-action_button_container" class="shiny-html-output"></div>
-<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
-</div>
-</div>
-<p>The shape and scale parameters govern the strength and duration of
-the prophylactic protection provided by the drug.</p>
-<p><img src="images/drug_prophylaxis_curve.png"
-style="width:100.0%" /></p>
-<p>Looking at the plot above, answer the following question:</p>
-<pre><code>## [1]  0.90  0.32  4.30 38.10</code></pre>
-<div class="panel-heading tutorial-quiz-title"><span data-i18n="text.quiz">Quiz</span></div>
-<div class="panel panel-default tutorial-question-container">
-<div data-label="drug-prophlaxis-quiz-1" class="tutorial-question panel-body">
-<div id="drug-prophlaxis-quiz-1-answer_container" class="shiny-html-output"></div>
-<div id="drug-prophlaxis-quiz-1-message_container" class="shiny-html-output"></div>
-<div id="drug-prophlaxis-quiz-1-action_button_container" class="shiny-html-output"></div>
-<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
-</div>
-</div>
-<p>To simulate the use of a drug in <code>malariasimulation</code>, we
-load them into the parameters list. This is done using the
-<code>set_drugs()</code> function. Note that the drug parameters
-(e.g. <code>AL_params</code>) must be passed to <code>get_drugs()</code>
-as a list.</p>
-<div class="tutorial-exercise" data-label="using-set-drugs"
+<p>Now, let’s obtain a set of parameters and run a baseline model. We
+will use <code>set_equilibrium()</code> to initialise the model at a
+certain EIR.</p>
+<div class="tutorial-exercise" data-label="baseline_model"
 data-completion="1" data-diagnostics="1" data-startover="1"
 data-lines="0" data-pipe="|&gt;">
-<pre class="text"><code># Establish a list of malariasimulation parameters:
-parameters &lt;- get_parameters() 
+<pre class="text"><code># set a random seed so results are more comparable between runs
+set.seed(780)
 
-# Load the parameters for artemether lumefantrine into the parameters
-parameters &lt;- set_drugs(parameters = parameters, drugs = list(AL_params))
+year&lt;- 365
+sim_length &lt;- 3 * year
+human_population &lt;- 10000
+starting_EIR &lt;- 20
 
-# View the parameters for AL:
-parameters$drug_efficacy</code></pre>
-<script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
-</div>
-<p>The final line of the chunk above shows us how we can view the drug
-parameters currently loaded the parameters list once they have been
-appended. When simulating interventions that use antimalarial drugs
-(e.g. clinical treatment), this can provide a useful check to ensure you
-have loaded the drug parameters correctly. In the chunk below, view the
-<code>drug_rel_c</code> parameter:</p>
-<div class="tutorial-exercise" data-label="view-drug-in-params"
-data-completion="1" data-diagnostics="1" data-startover="1"
-data-lines="0" data-pipe="|&gt;">
-<pre class="text"><code># Establish a list of malariasimulation parameters:
-parameters &lt;- get_parameters() 
+simparams &lt;- get_parameters(list(
+    human_population = human_population,
+    clinical_incidence_rendering_min_ages = 0,
+    clinical_incidence_rendering_max_ages = 5 * year,
+    individual_mosquitoes = FALSE
+  )
+)
 
-# Load the parameters for artemether lumefantrine into the parameters list:
-parameters &lt;- set_drugs(parameters = parameters, drugs = list(DHA_PQP_params))
+simparams &lt;- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)
 
-# View the drug_rel_c parameter for DHA-PQP:</code></pre>
+# Run a model with no interventions in a setting with no seasonality
+output_control &lt;- run_simulation(timesteps = sim_length, parameters = simparams)
+
+# Let&#39;s take a look at the model output
+head(output_control)</code></pre>
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
 </div>
-<div id="section-setting-clinical-treatment" class="section level2">
-<h2>2. Setting clinical treatment</h2>
-<p>Now that we know how to load antimalarial drug parameters we can
-specify how they will be administered to the population. In
-malariasimulation, we parameterise clinical treatment using the
-<code>set_clinical_treatment()</code> function (run
-<code>?set_clinical_treatment()</code> to view the help file for the
-function). <code>set_clinical_treatment()</code> requires four
-arguments:</p>
-<ol style="list-style-type: decimal">
-<li><code>parameters</code>: A list of <code>malariasimulation</code>
-parameters (with parameters for drug(s) loaded using
-<code>set_drugs()</code>)</li>
-<li><code>drug</code>: The indices of the drug which we are
-parameterising clinical treatment for</li>
-<li><code>timesteps</code>: A vector of timesteps on which we want to
-update clinical treatment coverage</li>
-<li><code>coverages</code>: A vector of clinical treatment coverages
-(proportion of the clinical infections that will be treated in each
-timestep).</li>
-</ol>
-<p>Note that we need to call <code>set_clinical_treatment()</code> for
-each drug that we are specifying clinical treatment for, and that the
-<code>timesteps</code> and <code>coverage</code> inputs need to be
-vectors of equal length, such that each update to the coverage has a
-corresponding timestep on which the update should take place. The
-following chunk shows how to set up and run a simulation with clinical
-treatment:</p>
-<div class="tutorial-exercise" data-label="set-clin-treat-example"
+<div id="section-mass-vaccination-strategy" class="section level2">
+<h2>Mass vaccination strategy</h2>
+<p>We can implement a mass vaccination strategy in which all people
+between 5 months and 50 years old are vaccinated with 3 doses of RTS,S,
+followed by a booster 12 months after.</p>
+<p>We will carry out the following steps:</p>
+<ul>
+<li>Parameterize the vaccine strategy</li>
+<li>Run the simulation</li>
+<li>Calculate incidence and parasite prevalence</li>
+<li>Visualize incidence and parasite prevalence over time</li>
+</ul>
+<div class="tutorial-exercise" data-label="mass_vaccination"
 data-completion="1" data-diagnostics="1" data-startover="1"
 data-lines="0" data-pipe="|&gt;">
-<pre class="text"><code># Establish a list of malariasimulation parameters:
-parameters &lt;- get_parameters(overrides = list(human_population = 1000)) 
+<pre class="text"><code>month&lt;- 30
+year&lt;- 365
 
-# Load the parameters for artemether lumefantrine into the parameters
-parameters &lt;- set_drugs(parameters = parameters, drugs = list(AL_params))
+rtssmassparams &lt;- set_mass_pev(
+  simparams,
+  profile = malariasimulation::rtss_profile, # We will model implementation of the RTSS vaccine.
+  timesteps = 1 * year,   # The single round of vaccination is at 1 year into the simulation.
+  coverages = 1,          # The vaccine is given to 100% of the population between the specified ages.
+  min_wait = 0,           # The minimum acceptable time since the last vaccination is 0 because in our case we are only implementing one round of vaccination.
+  min_ages = 5 * month,   # The minimum age for the target population to be vaccinated. 
+  max_ages = 50 * year,   # The maximum age for the target population to be vaccinated.
+  booster_timestep = 12 * month, # The booster is given at 12 months after the primary series. 
+  booster_coverage = 0.95,# Coverage of the booster dose is 95%.
+  booster_profile = list(malariasimulation::rtss_booster_profile) # We will model implementation of the RTSS booster.
+)
 
-# Specify a clinical treatment regime for artemether lumefantrine:
-parameters &lt;- set_clinical_treatment(parameters = parameters, drug = 1, timesteps = c(0, (1 * 365) + 1), coverages = c(0, 0.6))
+sim_length &lt;- 3 * year
+output &lt;- run_simulation(timesteps = sim_length, parameters = rtssmassparams)
 
-# Tune the parameter set to an initial EIR:
-parameters &lt;- set_equilibrium(parameters = parameters, init_EIR = 8)
+# Look at model output
+head(output)
 
-# Run the simulation:
-clinical_treatment_simulation &lt;- run_simulation(timesteps = 3 * 365, parameters = parameters)
 
-# Plot the prevalence through time:
-clinical_treatment_simulation |&gt;
-  ggplot(aes(x = timestep, y = n_detect_730_3650/n_730_3650)) +
-  geom_line(colour = &quot;deepskyblue2&quot;, linewidth = 1.2) +
-  theme_bw() +
-  labs(x = &quot;Time (days)&quot;, y = &quot;Prevalence (2-10)&quot;)+
-  scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
-  scale_x_continuous(expand = c(0, 0)) +
-  geom_vline(xintercept = (1 * 365) + 1, linetype = &quot;dashed&quot;)</code></pre>
+# process the model output to see how prevalence + incidence vary over time
+# make an identifying variable for vaccine +non-vaccine scenario
+output$scenario&lt;- &#39;vaccine&#39;
+output_control$scenario&lt;- &#39;no vaccine&#39;
+
+# bind control and vaccine outputs together
+full_output&lt;- dplyr::bind_rows(output, output_control)
+
+# calculate time in years
+full_output$time_year &lt;- full_output$timestep / year
+
+# calculate incidence in children under 5 here
+full_output$clinical_incidence&lt;- 1000* full_output$n_inc_clinical_0_1825 / full_output$n_0_1825
+
+# calculate parasite prevalence
+full_output$pfpr&lt;- full_output$n_detect_730_3650/full_output$n_730_3650
+
+
+# plot clinical incidence over time
+incidence_plot&lt;- function(full_output){
+  
+  ggplot(data= full_output, mapping = aes(x= time_year, y= clinical_incidence, color = scenario, fill= scenario))+
+  geom_line(alpha = 0.4) +
+  geom_smooth(method = &#39;loess&#39;, span= 0.25) +
+  geom_vline(xintercept = 1, linetype= &#39;dotted&#39;, alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced
+    theme_bw()+
+  scale_color_manual(values= c(&quot;#E69F00&quot;, &quot;#56B4E9&quot;))+
+  scale_fill_manual(values = c(&quot;#E69F00&quot;, &quot;#56B4E9&quot;)) +
+  labs(x = &quot;Time (years)&quot;, 
+       y = &quot;Clinical incidence (per 1000 children aged 0-5)&quot;,
+       color= &#39;Scenario&#39;,
+       fill = &#39;Scenario&#39;)
+
+}
+
+  
+incidence_plot(full_output)
+
+# plot parasite prevalence as well
+prevalence_plot&lt;- function(full_output){
+
+
+# plot parasite prevalence over time
+ggplot(data= full_output, mapping = aes(x= time_year, y= pfpr, color = scenario, fill= scenario))+
+  geom_line() +
+  ylim(c(0, 1))+
+  geom_vline(xintercept = 1, linetype= &#39;dashed&#39;, alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced
+  theme_bw()+
+  scale_color_manual(values= c(&quot;#E69F00&quot;, &quot;#56B4E9&quot;))+
+  scale_fill_manual(values = c(&quot;#E69F00&quot;, &quot;#56B4E9&quot;)) +
+  labs(x = &quot;Time (years)&quot;, 
+       y = expression(paste(italic(Pf),&quot;PR&quot;[2-10])),
+       color = &#39;Scenario&#39;,
+       fill= &#39;Scenario&#39;)
+}
+
+prevalence_plot(full_output)</code></pre>
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
-<div class="panel-heading tutorial-quiz-title"><span data-i18n="text.quiz">Quiz</span></div>
+<div class="panel-heading tutorial-quiz-title">Mass Vaccination Questions</div>
 <div class="panel panel-default tutorial-question-container">
 <div data-label="quiz2-1" class="tutorial-question panel-body">
 <div id="quiz2-1-answer_container" class="shiny-html-output"></div>
@@ -324,65 +291,184 @@ clinical_treatment_simulation |&gt;
 <script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
 </div>
 </div>
-<div class="panel panel-default tutorial-question-container">
-<div data-label="quiz2-2" class="tutorial-question panel-body">
-<div id="quiz2-2-answer_container" class="shiny-html-output"></div>
-<div id="quiz2-2-message_container" class="shiny-html-output"></div>
-<div id="quiz2-2-action_button_container" class="shiny-html-output"></div>
-<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
 </div>
-</div>
-<div class="panel panel-default tutorial-question-container">
-<div data-label="quiz2-3" class="tutorial-question panel-body">
-<div id="quiz2-3-answer_container" class="shiny-html-output"></div>
-<div id="quiz2-3-message_container" class="shiny-html-output"></div>
-<div id="quiz2-3-action_button_container" class="shiny-html-output"></div>
-<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
-</div>
-</div>
-</div>
-<div id="section-putting-it-all-together" class="section level2">
-<h2>3: Putting it all together</h2>
-<p>Awesome, that’s all of the basics for running
-<code>malariasimulation</code> simulations with clinical treatment. For
-the final exercise, I want you to run two simulations to look at the
-effect of clinical treatment on malaria transmission dynamics.</p>
-<p>The first simulation is a baseline scenario with the following
-criteria:</p>
-<ol style="list-style-type: decimal">
-<li><code>human_population</code> size of 10000</li>
-<li>Equilibrate the parameters to an initial EIR of 8 (refer the
-“introduction” tutorial if you need to!)</li>
-<li>Run the simulation for 5 years</li>
-</ol>
-<p>The second simulation will use what we’ve learnt to simulate clinical
-treatment with the following criteria:</p>
-<ol style="list-style-type: decimal">
-<li>Set the <code>human_population</code> parameter to 10000</li>
-<li>Load the parameters for dihydroartemisinin piperaquine
-(DHA-PQP)</li>
-<li>Initiate clinical treatment with a coverage of 0.4 at the end of
-year 1</li>
-<li>Increase the coverage to 0.8 at the end of the third year</li>
-<li>Equilibrate the simulations with an initial EIR of 8</li>
-<li>Run the simulation for 5 years</li>
-</ol>
-<p>Plot the <em>Pf</em>PR<sub>2-10</sub> for each simulation and compare
-the outputs!</p>
-<div class="tutorial-exercise" data-label="final-exercise"
+<div id="section-implement-your-mass-vaccination-strategy"
+class="section level2">
+<h2>Implement your mass vaccination strategy</h2>
+<p>Use this space to implement a mass vaccination strategy that:</p>
+<ul>
+<li>Is targeted at children under 5 years old</li>
+<li>Includes a booster delivered 5 months after the first three
+doses</li>
+<li>Reaches a coverage level of 50% for the first three doses and 75%
+for the booster dose.</li>
+</ul>
+<p>Plot incidence and the doses delivered for this model.</p>
+<div class="tutorial-exercise" data-label="space_to_work"
 data-completion="1" data-diagnostics="1" data-startover="1"
 data-lines="0" data-pipe="|&gt;">
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
-<p>
+<div id="section-filter-hint">
+<p><strong>Hint:</strong> Use <code>set_mass_pev()</code> and modify the
+arguments based on the previous exercise.</p>
+</div>
+<div class="panel-heading tutorial-quiz-title">Mass Vaccination Example</div>
+<div class="panel panel-default tutorial-question-container">
+<div data-label="mass_vax_example_questions-1" class="tutorial-question panel-body">
+<div id="mass_vax_example_questions-1-answer_container" class="shiny-html-output"></div>
+<div id="mass_vax_example_questions-1-message_container" class="shiny-html-output"></div>
+<div id="mass_vax_example_questions-1-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div>
+</div>
+<div id="section-age-based-vaccination" class="section level2">
+<h2>Age-based vaccination</h2>
+<p>Here, we will try an age-based strategy. With an age-based vaccine
+strategy, vaccines are administered to people at specific ages, rather
+than to the whole population at once.</p>
+<div class="tutorial-exercise" data-label="age_based"
+data-completion="1" data-diagnostics="1" data-startover="1"
+data-lines="0" data-pipe="|&gt;">
+<pre class="text"><code>month&lt;- 30
+year&lt;- 365
+
+# Add RTS,S EPI strategy
+rtssepiparams &lt;- set_pev_epi(
+  simparams,
+  profile = rtss_profile, # We will model implementation of the RTSS vaccine.
+  timesteps = 1 * year, # Vaccination will begin at 1 year into the simulation.
+  coverages = 1, # Vaccine coverage is 100%.
+  min_wait = 0, # There is no minimum wait since the last vaccination.
+  age = 5 * month, # Individuals will be vaccinated once they reach 5 months of age.
+  booster_timestep = 12 * month, # The booster is administered 12 months following the third dose. 
+  booster_coverage = 0.95, # 95% of those vaccinated with the primary series will be boosted.
+  booster_profile = list(rtss_booster_profile) # We will model implementation of the RTSS booster.
+)
+
+output &lt;- run_simulation(timesteps = sim_length, parameters = rtssepiparams)
+
+
+# now process and plot as we saw previously
+# make an identifying variable for vaccine + nonvaccine scenario
+output$scenario&lt;- &#39;vaccine&#39; 
+output_control$scenario&lt;- &#39;no vaccine&#39;
+
+full_output&lt;- dplyr::bind_rows(output, output_control) # bind control and vaccine outputs together
+full_output$time_year &lt;- full_output$timestep / 365 # calculate time in years
+
+# calculate incidence in children under 5 here
+full_output$clinical_incidence&lt;- 1000* full_output$n_inc_clinical_0_1825 / full_output$n_0_1825
+
+
+incidence_plot(full_output)</code></pre>
+<script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
+</div>
+</div>
+<div id="section-implement-your-age-based-vaccination-strategy"
+class="section level2">
+<h2>Implement your age-based vaccination strategy</h2>
+<p>Use this space to implement a mass vaccination strategy that:</p>
+<ul>
+<li>Vaccinates children beginning at 6 months of age, 1 year into the
+simulation</li>
+<li>Includes a booster delivered 12 months after the first three
+doses</li>
+<li>Reaches a coverage level of 42% for the first three doses and 25%
+for the booster dose.</li>
+</ul>
+<p>Plot incidence and the doses delivered for this model.</p>
+<div class="tutorial-exercise" data-label="more_space_to_work"
+data-completion="1" data-diagnostics="1" data-startover="1"
+data-lines="0" data-pipe="|&gt;">
+<script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
+</div>
+<div id="section-filter-hint">
+<p><strong>Hint:</strong> Use <code>set_pev_epi()</code> and modify the
+arguments based on the previous exercise.</p>
+</div>
+<div class="panel-heading tutorial-quiz-title">Age-based  example</div>
+<div class="panel panel-default tutorial-question-container">
+<div data-label="age_based_questions-1" class="tutorial-question panel-body">
+<div id="age_based_questions-1-answer_container" class="shiny-html-output"></div>
+<div id="age_based_questions-1-message_container" class="shiny-html-output"></div>
+<div id="age_based_questions-1-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div>
+<p>If you have extra time, run the same scenario without a booster dose,
+and compare it to model outputs with the booster dose. How does vaccine
+impact change without this dose?</p>
+<div class="tutorial-exercise" data-label="booster_space"
+data-completion="1" data-diagnostics="1" data-startover="1"
+data-lines="0" data-pipe="|&gt;">
+<script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
+</div>
+<p>} 
 <script type="application/shiny-prerendered" data-context="server-start">
-
-# Load the required packages:
 library(learnr)
-library(malariasimulation)
 library(ggplot2)
+library(data.table)
+library(tidyr)
+library(malariasimulation)
 
-knitr::opts_chunk$set(echo = FALSE)
+
+knitr::opts_chunk$set(cache=FALSE)
+
+# objects and variables needed across multiple chunks
+# baseline outputs
+year<- 365
+sim_length <- 3 * year
+human_population <- 10000
+starting_EIR <- 20
+
+simparams <- get_parameters(list(
+    human_population = human_population,
+    clinical_incidence_rendering_min_ages = 0,
+    clinical_incidence_rendering_max_ages = 5 * year,
+    individual_mosquitoes = FALSE
+  )
+)
+
+simparams <- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)
+# Run a model with no interventions in a setting with no seasonality
+output_control <- run_simulation(timesteps = sim_length, parameters = simparams)
+
+
+# plot clinical incidence over time
+incidence_plot<- function(full_output){
+  
+  ggplot(data= full_output, mapping = aes(x= time_year, y= clinical_incidence, color = scenario, fill= scenario))+
+  geom_line(alpha = 0.4) +
+  geom_smooth(method = 'loess', span= 0.25) +
+  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE)+
+    theme_bw()+
+  scale_color_manual(values= c("#E69F00", "#56B4E9"))+
+  scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
+  labs(x = "Time (years)", 
+       y = "Clinical incidence (per 1000 children aged 0-5)",
+       color= 'Scenario',
+       fill = 'Scenario')
+
+}
+
+prevalence_plot<- function(full_output){
+
+
+# plot parasite prevalence over time
+ggplot(data= full_output, mapping = aes(x= time_year, y= pfpr, color = scenario, fill= scenario))+
+  geom_line() +
+  ylim(c(0, 1))+
+  geom_vline(xintercept = 1, linetype= 'dashed', alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced
+  theme_bw()+
+  scale_color_manual(values= c("#E69F00", "#56B4E9"))+
+  scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
+  labs(x = "Time (years)", 
+       y = expression(paste(italic(Pf),"PR"[2-10])),
+       color = 'Scenario',
+       fill= 'Scenario')
+}
 
 </script>
  
@@ -407,116 +493,52 @@ session$onSessionEnded(function() {
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
-`tutorial-exercise-load-malsim-parameters-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-load-malsim-parameters-code-editor`)), session)
-output$`tutorial-exercise-load-malsim-parameters-output` <- renderUI({
-  `tutorial-exercise-load-malsim-parameters-result`()
+`tutorial-exercise-efficacy_profile-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-efficacy_profile-code-editor`)), session)
+output$`tutorial-exercise-efficacy_profile-output` <- renderUI({
+  `tutorial-exercise-efficacy_profile-result`()
 })
 </script>
 
 
 <script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "load-malsim-parameters", global_setup = structure(c("", 
-"# Load the required packages:", "library(learnr)", "library(malariasimulation)", 
-"library(ggplot2)", "", "knitr::opts_chunk$set(echo = FALSE)", 
+learnr:::store_exercise_cache(structure(list(label = "efficacy_profile", global_setup = structure(c("library(learnr)", 
+"library(ggplot2)", "library(data.table)", "library(tidyr)", 
+"library(malariasimulation)", "", "", "knitr::opts_chunk$set(cache=FALSE)", 
+"", "# objects and variables needed across multiple chunks", 
+"# baseline outputs", "year<- 365", "sim_length <- 3 * year", 
+"human_population <- 10000", "starting_EIR <- 20", "", "simparams <- get_parameters(list(", 
+"    human_population = human_population,", "    clinical_incidence_rendering_min_ages = 0,", 
+"    clinical_incidence_rendering_max_ages = 5 * year,", "    individual_mosquitoes = FALSE", 
+"  )", ")", "", "simparams <- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)", 
+"# Run a model with no interventions in a setting with no seasonality", 
+"output_control <- run_simulation(timesteps = sim_length, parameters = simparams)", 
+"", "", "# plot clinical incidence over time", "incidence_plot<- function(full_output){", 
+"  ", "  ggplot(data= full_output, mapping = aes(x= time_year, y= clinical_incidence, color = scenario, fill= scenario))+", 
+"  geom_line(alpha = 0.4) +", "  geom_smooth(method = 'loess', span= 0.25) +", 
+"  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE)+", 
+"    theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+"  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+"  labs(x = \"Time (years)\", ", "       y = \"Clinical incidence (per 1000 children aged 0-5)\",", 
+"       color= 'Scenario',", "       fill = 'Scenario')", "", 
+"}", "", "prevalence_plot<- function(full_output){", "", "", 
+"# plot parasite prevalence over time", "ggplot(data= full_output, mapping = aes(x= time_year, y= pfpr, color = scenario, fill= scenario))+", 
+"  geom_line() +", "  ylim(c(0, 1))+", "  geom_vline(xintercept = 1, linetype= 'dashed', alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced", 
+"  theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+"  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+"  labs(x = \"Time (years)\", ", "       y = expression(paste(italic(Pf),\"PR\"[2-10])),", 
+"       color = 'Scenario',", "       fill= 'Scenario')", "}", 
 ""), chunk_opts = list(label = "setup", include = FALSE)), setup = NULL, 
-    chunks = list(list(label = "load-malsim-parameters", code = "\n# Establish a list of malariasimulation parameters:\nparameters <- get_parameters(overrides = list(human_population = 1000))\n", 
-        opts = list(label = "\"load-malsim-parameters\"", exercise = "TRUE", 
-            exercise.eval = "FALSE"), engine = "r")), code_check = NULL, 
-    error_check = NULL, check = NULL, solution = NULL, tests = NULL, 
-    options = list(eval = FALSE, echo = TRUE, results = "markup", 
-        tidy = FALSE, tidy.opts = NULL, collapse = FALSE, prompt = FALSE, 
-        comment = NA, highlight = FALSE, size = "normalsize", 
-        background = "#F7F7F7", strip.white = TRUE, cache = 0, 
-        cache.path = "treatment_cache/html/", cache.vars = NULL, 
-        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
-        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
-        fig.align = "default", fig.path = "treatment_files/figure-html/", 
-        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
-        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
-        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
-        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
-        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
-        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
-        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
-        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
-        max.print = 1000, label = "load-malsim-parameters", exercise = TRUE, 
-        exercise.eval = FALSE, code = c("", "# Establish a list of malariasimulation parameters:", 
-        "parameters <- get_parameters(overrides = list(human_population = 1000))", 
-        ""), out.width.px = 624, out.height.px = 384, params.src = "load-malsim-parameters, exercise = TRUE, exercise.eval = FALSE", 
-        fig.num = 0, exercise.df_print = "paged", exercise.checker = "NULL"), 
-    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
-)))
-</script>
- 
-<script type="application/shiny-prerendered" data-context="server">
-`tutorial-exercise-view-inbuilt-antimalarial-parameters-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-view-inbuilt-antimalarial-parameters-code-editor`)), session)
-output$`tutorial-exercise-view-inbuilt-antimalarial-parameters-output` <- renderUI({
-  `tutorial-exercise-view-inbuilt-antimalarial-parameters-result`()
-})
-</script>
-
-
-<script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "view-inbuilt-antimalarial-parameters", 
-    global_setup = structure(c("", "# Load the required packages:", 
-    "library(learnr)", "library(malariasimulation)", "library(ggplot2)", 
-    "", "knitr::opts_chunk$set(echo = FALSE)", ""), chunk_opts = list(
-        label = "setup", include = FALSE)), setup = NULL, chunks = list(
-        list(label = "view-inbuilt-antimalarial-parameters", 
-            code = "\n# View the artemether lumefantrine (AL) parameter set:\nAL_params\n", 
-            opts = list(label = "\"view-inbuilt-antimalarial-parameters\"", 
-                exercise = "TRUE", exercise.eval = "FALSE"), 
-            engine = "r")), code_check = NULL, error_check = NULL, 
-    check = NULL, solution = NULL, tests = NULL, options = list(
-        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
-        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
-        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
-        strip.white = TRUE, cache = 0, cache.path = "treatment_cache/html/", 
-        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
-        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
-        fig.show = "asis", fig.align = "default", fig.path = "treatment_files/figure-html/", 
-        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
-        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
-        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
-        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
-        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
-        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
-        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
-        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
-        max.print = 1000, label = "view-inbuilt-antimalarial-parameters", 
-        exercise = TRUE, exercise.eval = FALSE, code = c("", 
-        "# View the artemether lumefantrine (AL) parameter set:", 
-        "AL_params", ""), out.width.px = 624, out.height.px = 384, 
-        params.src = "view-inbuilt-antimalarial-parameters, exercise = TRUE, exercise.eval = FALSE", 
-        fig.num = 0, exercise.df_print = "paged", exercise.checker = "NULL"), 
-    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
-)))
-</script>
- 
-<script type="application/shiny-prerendered" data-context="server">
-`tutorial-exercise-view-drug-params-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-view-drug-params-code-editor`)), session)
-output$`tutorial-exercise-view-drug-params-output` <- renderUI({
-  `tutorial-exercise-view-drug-params-result`()
-})
-</script>
-
-
-<script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "view-drug-params", global_setup = structure(c("", 
-"# Load the required packages:", "library(learnr)", "library(malariasimulation)", 
-"library(ggplot2)", "", "knitr::opts_chunk$set(echo = FALSE)", 
-""), chunk_opts = list(label = "setup", include = FALSE)), setup = NULL, 
-    chunks = list(list(label = "view-drug-params", code = "\n# View the parameters for DHA-PQP and SP-AQ:\n\n", 
-        opts = list(label = "\"view-drug-params\"", exercise = "TRUE"), 
+    chunks = list(list(label = "efficacy_profile", code = "\nmalariasimulation::rtss_profile # Parameters for the first three doses of RTS,S\n\nmalariasimulation::rtss_booster_profile # Parameters for the fourth (booster) dose of RTS,S", 
+        opts = list(label = "\"efficacy_profile\"", exercise = "TRUE"), 
         engine = "r")), code_check = NULL, error_check = NULL, 
     check = NULL, solution = NULL, tests = NULL, options = list(
         eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
         tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
         highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
-        strip.white = TRUE, cache = 0, cache.path = "treatment_cache/html/", 
+        strip.white = TRUE, cache = 0, cache.path = "vaccines_cache/html/", 
         cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
         autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
-        fig.show = "asis", fig.align = "default", fig.path = "treatment_files/figure-html/", 
+        fig.show = "asis", fig.align = "default", fig.path = "vaccines_files/figure-html/", 
         dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
         fig.width = 6.5, fig.height = 4, fig.env = "figure", 
         fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
@@ -525,321 +547,277 @@ learnr:::store_exercise_cache(structure(list(label = "view-drug-params", global_
         aniopts = "controls,loop", warning = TRUE, error = FALSE, 
         message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
         engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
-        max.print = 1000, label = "view-drug-params", exercise = TRUE, 
-        code = c("", "# View the parameters for DHA-PQP and SP-AQ:", 
-        "", ""), out.width.px = 624, out.height.px = 384, params.src = "view-drug-params, exercise = TRUE", 
+        max.print = 1000, label = "efficacy_profile", exercise = TRUE, 
+        code = c("", "malariasimulation::rtss_profile # Parameters for the first three doses of RTS,S", 
+        "", "malariasimulation::rtss_booster_profile # Parameters for the fourth (booster) dose of RTS,S"
+        ), out.width.px = 624, out.height.px = 384, params.src = "efficacy_profile, exercise = TRUE", 
         fig.num = 0, exercise.df_print = "paged", exercise.checker = "NULL"), 
     engine = "r", version = "4"), class = c("r", "tutorial_exercise"
 )))
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
-learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "drug-params-quiz-1", 
-    question = structure("The efficacy of DHA-PQP in the DHA_PQP_params set is 0.95000", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_f7978b3", 
-        option = "TRUE", value = "TRUE", label = structure("TRUE", html = TRUE, class = c("html", 
-        "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_cbae8df", 
-        option = "FALSE", value = "FALSE", label = structure("FALSE", html = TRUE, class = c("html", 
-        "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
-    "character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
-    "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
-    "character")), try_again = structure("Incorrect", html = TRUE, class = c("html", 
-    "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
-    "character")), message = NULL, post_message = NULL), ids = list(
-        answer = "drug-params-quiz-1-answer", question = "drug-params-quiz-1"), 
-    loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 1301801370.3938, options = list()), class = c("learnr_radio", 
-"tutorial_question")), session = session)
-</script>
-
-
-<script type="application/shiny-prerendered" data-context="server">
-learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "drug-params-quiz-2", 
-    question = structure("The drug_rel_c of SP-AQ in the SP_AQ_params set is 4.30", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_d1d1c51", 
-        option = "TRUE", value = "TRUE", label = structure("TRUE", html = TRUE, class = c("html", 
-        "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_f50155e", 
-        option = "FALSE", value = "FALSE", label = structure("FALSE", html = TRUE, class = c("html", 
-        "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
-    "character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
-    "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
-    "character")), try_again = structure("Incorrect", html = TRUE, class = c("html", 
-    "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
-    "character")), message = NULL, post_message = NULL), ids = list(
-        answer = "drug-params-quiz-2-answer", question = "drug-params-quiz-2"), 
-    loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 1945054667.09426, options = list()), class = c("learnr_radio", 
-"tutorial_question")), session = session)
-</script>
- 
-<script type="application/shiny-prerendered" data-context="server">
-learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "drug-prophlaxis-quiz-1", 
-    question = structure("The drug that provides protection for the longest is", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_dac9a4d", 
-        option = "SP-AQ", value = "SP-AQ", label = structure("SP-AQ", html = TRUE, class = c("html", 
-        "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_a8220ac", 
-        option = "AL", value = "AL", label = structure("AL", html = TRUE, class = c("html", 
-        "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_2eefe91", 
-        option = "DHA-PQP", value = "DHA-PQP", label = structure("DHA-PQP", html = TRUE, class = c("html", 
-        "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
-    "character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
-    "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
-    "character")), try_again = structure("Incorrect", html = TRUE, class = c("html", 
-    "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
-    "character")), message = NULL, post_message = NULL), ids = list(
-        answer = "drug-prophlaxis-quiz-1-answer", question = "drug-prophlaxis-quiz-1"), 
-    loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 172196739.419815, options = list()), class = c("learnr_radio", 
-"tutorial_question")), session = session)
-</script>
-
-
-<script type="application/shiny-prerendered" data-context="server">
-`tutorial-exercise-using-set-drugs-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-using-set-drugs-code-editor`)), session)
-output$`tutorial-exercise-using-set-drugs-output` <- renderUI({
-  `tutorial-exercise-using-set-drugs-result`()
-})
-</script>
- 
-<script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "using-set-drugs", global_setup = structure(c("", 
-"# Load the required packages:", "library(learnr)", "library(malariasimulation)", 
-"library(ggplot2)", "", "knitr::opts_chunk$set(echo = FALSE)", 
-""), chunk_opts = list(label = "setup", include = FALSE)), setup = NULL, 
-    chunks = list(list(label = "using-set-drugs", code = "\n# Establish a list of malariasimulation parameters:\nparameters <- get_parameters() \n\n# Load the parameters for artemether lumefantrine into the parameters\nparameters <- set_drugs(parameters = parameters, drugs = list(AL_params))\n\n# View the parameters for AL:\nparameters$drug_efficacy\n", 
-        opts = list(label = "\"using-set-drugs\"", exercise = "TRUE", 
-            eval = "TRUE"), engine = "r")), code_check = NULL, 
-    error_check = NULL, check = NULL, solution = NULL, tests = NULL, 
-    options = list(eval = FALSE, echo = TRUE, results = "markup", 
-        tidy = FALSE, tidy.opts = NULL, collapse = FALSE, prompt = FALSE, 
-        comment = NA, highlight = FALSE, size = "normalsize", 
-        background = "#F7F7F7", strip.white = TRUE, cache = 0, 
-        cache.path = "treatment_cache/html/", cache.vars = NULL, 
-        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
-        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
-        fig.align = "default", fig.path = "treatment_files/figure-html/", 
-        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
-        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
-        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
-        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
-        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
-        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
-        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
-        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
-        max.print = 1000, label = "using-set-drugs", exercise = TRUE, 
-        code = c("", "# Establish a list of malariasimulation parameters:", 
-        "parameters <- get_parameters() ", "", "# Load the parameters for artemether lumefantrine into the parameters", 
-        "parameters <- set_drugs(parameters = parameters, drugs = list(AL_params))", 
-        "", "# View the parameters for AL:", "parameters$drug_efficacy", 
-        ""), out.width.px = 624, out.height.px = 384, params.src = "using-set-drugs, exercise = TRUE, eval = TRUE", 
-        fig.num = 0, exercise.df_print = "paged", exercise.checker = "NULL"), 
-    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
-)))
-</script>
-
-
-<script type="application/shiny-prerendered" data-context="server">
-`tutorial-exercise-view-drug-in-params-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-view-drug-in-params-code-editor`)), session)
-output$`tutorial-exercise-view-drug-in-params-output` <- renderUI({
-  `tutorial-exercise-view-drug-in-params-result`()
-})
-</script>
- 
-<script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "view-drug-in-params", global_setup = structure(c("", 
-"# Load the required packages:", "library(learnr)", "library(malariasimulation)", 
-"library(ggplot2)", "", "knitr::opts_chunk$set(echo = FALSE)", 
-""), chunk_opts = list(label = "setup", include = FALSE)), setup = NULL, 
-    chunks = list(list(label = "view-drug-in-params", code = "\n# Establish a list of malariasimulation parameters:\nparameters <- get_parameters() \n\n# Load the parameters for artemether lumefantrine into the parameters list:\nparameters <- set_drugs(parameters = parameters, drugs = list(DHA_PQP_params))\n\n# View the drug_rel_c parameter for DHA-PQP:\n\n", 
-        opts = list(label = "\"view-drug-in-params\"", exercise = "TRUE"), 
-        engine = "r")), code_check = NULL, error_check = NULL, 
-    check = NULL, solution = NULL, tests = NULL, options = list(
-        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
-        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
-        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
-        strip.white = TRUE, cache = 0, cache.path = "treatment_cache/html/", 
-        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
-        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
-        fig.show = "asis", fig.align = "default", fig.path = "treatment_files/figure-html/", 
-        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
-        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
-        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
-        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
-        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
-        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
-        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
-        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
-        max.print = 1000, label = "view-drug-in-params", exercise = TRUE, 
-        code = c("", "# Establish a list of malariasimulation parameters:", 
-        "parameters <- get_parameters() ", "", "# Load the parameters for artemether lumefantrine into the parameters list:", 
-        "parameters <- set_drugs(parameters = parameters, drugs = list(DHA_PQP_params))", 
-        "", "# View the drug_rel_c parameter for DHA-PQP:", "", 
-        ""), out.width.px = 624, out.height.px = 384, params.src = "view-drug-in-params, exercise = TRUE", 
-        fig.num = 0, exercise.df_print = "paged", exercise.checker = "NULL"), 
-    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
-)))
-</script>
-
-
-<script type="application/shiny-prerendered" data-context="server">
-`tutorial-exercise-set-clin-treat-example-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-set-clin-treat-example-code-editor`)), session)
-output$`tutorial-exercise-set-clin-treat-example-output` <- renderUI({
-  `tutorial-exercise-set-clin-treat-example-result`()
-})
-</script>
- 
-<script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "set-clin-treat-example", global_setup = structure(c("", 
-"# Load the required packages:", "library(learnr)", "library(malariasimulation)", 
-"library(ggplot2)", "", "knitr::opts_chunk$set(echo = FALSE)", 
-""), chunk_opts = list(label = "setup", include = FALSE)), setup = NULL, 
-    chunks = list(list(label = "set-clin-treat-example", code = "\n# Establish a list of malariasimulation parameters:\nparameters <- get_parameters(overrides = list(human_population = 1000)) \n\n# Load the parameters for artemether lumefantrine into the parameters\nparameters <- set_drugs(parameters = parameters, drugs = list(AL_params))\n\n# Specify a clinical treatment regime for artemether lumefantrine:\nparameters <- set_clinical_treatment(parameters = parameters, drug = 1, timesteps = c(0, (1 * 365) + 1), coverages = c(0, 0.6))\n\n# Tune the parameter set to an initial EIR:\nparameters <- set_equilibrium(parameters = parameters, init_EIR = 8)\n\n# Run the simulation:\nclinical_treatment_simulation <- run_simulation(timesteps = 3 * 365, parameters = parameters)\n\n# Plot the prevalence through time:\nclinical_treatment_simulation |>\n  ggplot(aes(x = timestep, y = n_detect_730_3650/n_730_3650)) +\n  geom_line(colour = \"deepskyblue2\", linewidth = 1.2) +\n  theme_bw() +\n  labs(x = \"Time (days)\", y = \"Prevalence (2-10)\")+\n  scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +\n  scale_x_continuous(expand = c(0, 0)) +\n  geom_vline(xintercept = (1 * 365) + 1, linetype = \"dashed\")\n  \n", 
-        opts = list(label = "\"set-clin-treat-example\"", exercise = "TRUE"), 
-        engine = "r")), code_check = NULL, error_check = NULL, 
-    check = NULL, solution = NULL, tests = NULL, options = list(
-        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
-        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
-        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
-        strip.white = TRUE, cache = 0, cache.path = "treatment_cache/html/", 
-        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
-        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
-        fig.show = "asis", fig.align = "default", fig.path = "treatment_files/figure-html/", 
-        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
-        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
-        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
-        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
-        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
-        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
-        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
-        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
-        max.print = 1000, label = "set-clin-treat-example", exercise = TRUE, 
-        code = c("", "# Establish a list of malariasimulation parameters:", 
-        "parameters <- get_parameters(overrides = list(human_population = 1000)) ", 
-        "", "# Load the parameters for artemether lumefantrine into the parameters", 
-        "parameters <- set_drugs(parameters = parameters, drugs = list(AL_params))", 
-        "", "# Specify a clinical treatment regime for artemether lumefantrine:", 
-        "parameters <- set_clinical_treatment(parameters = parameters, drug = 1, timesteps = c(0, (1 * 365) + 1), coverages = c(0, 0.6))", 
-        "", "# Tune the parameter set to an initial EIR:", "parameters <- set_equilibrium(parameters = parameters, init_EIR = 8)", 
-        "", "# Run the simulation:", "clinical_treatment_simulation <- run_simulation(timesteps = 3 * 365, parameters = parameters)", 
-        "", "# Plot the prevalence through time:", "clinical_treatment_simulation |>", 
-        "  ggplot(aes(x = timestep, y = n_detect_730_3650/n_730_3650)) +", 
-        "  geom_line(colour = \"deepskyblue2\", linewidth = 1.2) +", 
-        "  theme_bw() +", "  labs(x = \"Time (days)\", y = \"Prevalence (2-10)\")+", 
-        "  scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +", 
-        "  scale_x_continuous(expand = c(0, 0)) +", "  geom_vline(xintercept = (1 * 365) + 1, linetype = \"dashed\")", 
-        "  ", ""), out.width.px = 624, out.height.px = 384, params.src = "set-clin-treat-example, exercise = TRUE", 
-        fig.num = 0, exercise.df_print = "paged", exercise.checker = "NULL"), 
-    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
-)))
-</script>
-
-
-<script type="application/shiny-prerendered" data-context="server">
-learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz2-1", question = structure("Drug parameters must be loaded into set_drugs() as a list?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_ba12a79", 
-    option = "TRUE", value = "TRUE", label = structure("TRUE", html = TRUE, class = c("html", 
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_numeric", label = "quiz1-1", question = structure("What is the maximum vaccine efficacy of the first three doses of the RTS,S vaccine?", html = TRUE, class = c("html", 
+"character")), answers = list(structure(list(id = "lnr_ans_def9c1c", 
+    option = "0.93", value = 0.93, label = structure("0.93", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_28fd3e0", 
-    option = "FALSE", value = "FALSE", label = structure("FALSE", html = TRUE, class = c("html", 
+"tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
+"character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
+"character"))), messages = list(correct = structure("Correct! This means that the maximum efficacy against infection is 93%.", html = TRUE, class = c("html", 
+"character")), try_again = structure("Incorrect", html = TRUE, class = c("html", 
+"character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
+"character")), message = NULL, post_message = NULL), ids = list(
+    answer = "quiz1-1-answer", question = "quiz1-1"), loading = NULL, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 506238658.264264, 
+    options = list(min = NA, max = NA, step = NA, tolerance = 1.5e-08)), class = c("learnr_numeric", 
+"tutorial_question")), session = session)
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-baseline_model-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-baseline_model-code-editor`)), session)
+output$`tutorial-exercise-baseline_model-output` <- renderUI({
+  `tutorial-exercise-baseline_model-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::store_exercise_cache(structure(list(label = "baseline_model", global_setup = structure(c("library(learnr)", 
+"library(ggplot2)", "library(data.table)", "library(tidyr)", 
+"library(malariasimulation)", "", "", "knitr::opts_chunk$set(cache=FALSE)", 
+"", "# objects and variables needed across multiple chunks", 
+"# baseline outputs", "year<- 365", "sim_length <- 3 * year", 
+"human_population <- 10000", "starting_EIR <- 20", "", "simparams <- get_parameters(list(", 
+"    human_population = human_population,", "    clinical_incidence_rendering_min_ages = 0,", 
+"    clinical_incidence_rendering_max_ages = 5 * year,", "    individual_mosquitoes = FALSE", 
+"  )", ")", "", "simparams <- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)", 
+"# Run a model with no interventions in a setting with no seasonality", 
+"output_control <- run_simulation(timesteps = sim_length, parameters = simparams)", 
+"", "", "# plot clinical incidence over time", "incidence_plot<- function(full_output){", 
+"  ", "  ggplot(data= full_output, mapping = aes(x= time_year, y= clinical_incidence, color = scenario, fill= scenario))+", 
+"  geom_line(alpha = 0.4) +", "  geom_smooth(method = 'loess', span= 0.25) +", 
+"  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE)+", 
+"    theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+"  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+"  labs(x = \"Time (years)\", ", "       y = \"Clinical incidence (per 1000 children aged 0-5)\",", 
+"       color= 'Scenario',", "       fill = 'Scenario')", "", 
+"}", "", "prevalence_plot<- function(full_output){", "", "", 
+"# plot parasite prevalence over time", "ggplot(data= full_output, mapping = aes(x= time_year, y= pfpr, color = scenario, fill= scenario))+", 
+"  geom_line() +", "  ylim(c(0, 1))+", "  geom_vline(xintercept = 1, linetype= 'dashed', alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced", 
+"  theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+"  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+"  labs(x = \"Time (years)\", ", "       y = expression(paste(italic(Pf),\"PR\"[2-10])),", 
+"       color = 'Scenario',", "       fill= 'Scenario')", "}", 
+""), chunk_opts = list(label = "setup", include = FALSE)), setup = NULL, 
+    chunks = list(list(label = "baseline_model", code = "\n# set a random seed so results are more comparable between runs\nset.seed(780)\n\nyear<- 365\nsim_length <- 3 * year\nhuman_population <- 10000\nstarting_EIR <- 20\n\nsimparams <- get_parameters(list(\n    human_population = human_population,\n    clinical_incidence_rendering_min_ages = 0,\n    clinical_incidence_rendering_max_ages = 5 * year,\n    individual_mosquitoes = FALSE\n  )\n)\n\nsimparams <- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)\n\n# Run a model with no interventions in a setting with no seasonality\noutput_control <- run_simulation(timesteps = sim_length, parameters = simparams)\n\n# Let's take a look at the model output\nhead(output_control)\n", 
+        opts = list(label = "\"baseline_model\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "vaccines_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "vaccines_files/figure-html/", 
+        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
+        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
+        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
+        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
+        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
+        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
+        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
+        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
+        max.print = 1000, label = "baseline_model", exercise = TRUE, 
+        code = c("", "# set a random seed so results are more comparable between runs", 
+        "set.seed(780)", "", "year<- 365", "sim_length <- 3 * year", 
+        "human_population <- 10000", "starting_EIR <- 20", "", 
+        "simparams <- get_parameters(list(", "    human_population = human_population,", 
+        "    clinical_incidence_rendering_min_ages = 0,", "    clinical_incidence_rendering_max_ages = 5 * year,", 
+        "    individual_mosquitoes = FALSE", "  )", ")", "", 
+        "simparams <- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)", 
+        "", "# Run a model with no interventions in a setting with no seasonality", 
+        "output_control <- run_simulation(timesteps = sim_length, parameters = simparams)", 
+        "", "# Let's take a look at the model output", "head(output_control)", 
+        ""), out.width.px = 624, out.height.px = 384, params.src = "baseline_model, exercise = TRUE", 
+        fig.num = 0, exercise.df_print = "paged", exercise.checker = "NULL"), 
+    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
+)))
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-mass_vaccination-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-mass_vaccination-code-editor`)), session)
+output$`tutorial-exercise-mass_vaccination-output` <- renderUI({
+  `tutorial-exercise-mass_vaccination-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::store_exercise_cache(structure(list(label = "mass_vaccination", global_setup = structure(c("library(learnr)", 
+"library(ggplot2)", "library(data.table)", "library(tidyr)", 
+"library(malariasimulation)", "", "", "knitr::opts_chunk$set(cache=FALSE)", 
+"", "# objects and variables needed across multiple chunks", 
+"# baseline outputs", "year<- 365", "sim_length <- 3 * year", 
+"human_population <- 10000", "starting_EIR <- 20", "", "simparams <- get_parameters(list(", 
+"    human_population = human_population,", "    clinical_incidence_rendering_min_ages = 0,", 
+"    clinical_incidence_rendering_max_ages = 5 * year,", "    individual_mosquitoes = FALSE", 
+"  )", ")", "", "simparams <- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)", 
+"# Run a model with no interventions in a setting with no seasonality", 
+"output_control <- run_simulation(timesteps = sim_length, parameters = simparams)", 
+"", "", "# plot clinical incidence over time", "incidence_plot<- function(full_output){", 
+"  ", "  ggplot(data= full_output, mapping = aes(x= time_year, y= clinical_incidence, color = scenario, fill= scenario))+", 
+"  geom_line(alpha = 0.4) +", "  geom_smooth(method = 'loess', span= 0.25) +", 
+"  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE)+", 
+"    theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+"  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+"  labs(x = \"Time (years)\", ", "       y = \"Clinical incidence (per 1000 children aged 0-5)\",", 
+"       color= 'Scenario',", "       fill = 'Scenario')", "", 
+"}", "", "prevalence_plot<- function(full_output){", "", "", 
+"# plot parasite prevalence over time", "ggplot(data= full_output, mapping = aes(x= time_year, y= pfpr, color = scenario, fill= scenario))+", 
+"  geom_line() +", "  ylim(c(0, 1))+", "  geom_vline(xintercept = 1, linetype= 'dashed', alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced", 
+"  theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+"  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+"  labs(x = \"Time (years)\", ", "       y = expression(paste(italic(Pf),\"PR\"[2-10])),", 
+"       color = 'Scenario',", "       fill= 'Scenario')", "}", 
+""), chunk_opts = list(label = "setup", include = FALSE)), setup = NULL, 
+    chunks = list(list(label = "mass_vaccination", code = "month<- 30\nyear<- 365\n\nrtssmassparams <- set_mass_pev(\n  simparams,\n  profile = malariasimulation::rtss_profile, # We will model implementation of the RTSS vaccine.\n  timesteps = 1 * year,   # The single round of vaccination is at 1 year into the simulation.\n  coverages = 1,          # The vaccine is given to 100% of the population between the specified ages.\n  min_wait = 0,           # The minimum acceptable time since the last vaccination is 0 because in our case we are only implementing one round of vaccination.\n  min_ages = 5 * month,   # The minimum age for the target population to be vaccinated. \n  max_ages = 50 * year,   # The maximum age for the target population to be vaccinated.\n  booster_timestep = 12 * month, # The booster is given at 12 months after the primary series. \n  booster_coverage = 0.95,# Coverage of the booster dose is 95%.\n  booster_profile = list(malariasimulation::rtss_booster_profile) # We will model implementation of the RTSS booster.\n)\n\nsim_length <- 3 * year\noutput <- run_simulation(timesteps = sim_length, parameters = rtssmassparams)\n\n# Look at model output\nhead(output)\n\n\n# process the model output to see how prevalence + incidence vary over time\n# make an identifying variable for vaccine +non-vaccine scenario\noutput$scenario<- 'vaccine'\noutput_control$scenario<- 'no vaccine'\n\n# bind control and vaccine outputs together\nfull_output<- dplyr::bind_rows(output, output_control)\n\n# calculate time in years\nfull_output$time_year <- full_output$timestep / year\n\n# calculate incidence in children under 5 here\nfull_output$clinical_incidence<- 1000* full_output$n_inc_clinical_0_1825 / full_output$n_0_1825\n\n# calculate parasite prevalence\nfull_output$pfpr<- full_output$n_detect_730_3650/full_output$n_730_3650\n\n\n# plot clinical incidence over time\nincidence_plot<- function(full_output){\n  \n  ggplot(data= full_output, mapping = aes(x= time_year, y= clinical_incidence, color = scenario, fill= scenario))+\n  geom_line(alpha = 0.4) +\n  geom_smooth(method = 'loess', span= 0.25) +\n  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced\n    theme_bw()+\n  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+\n  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +\n  labs(x = \"Time (years)\", \n       y = \"Clinical incidence (per 1000 children aged 0-5)\",\n       color= 'Scenario',\n       fill = 'Scenario')\n\n}\n\n  \nincidence_plot(full_output)\n\n# plot parasite prevalence as well\nprevalence_plot<- function(full_output){\n\n\n# plot parasite prevalence over time\nggplot(data= full_output, mapping = aes(x= time_year, y= pfpr, color = scenario, fill= scenario))+\n  geom_line() +\n  ylim(c(0, 1))+\n  geom_vline(xintercept = 1, linetype= 'dashed', alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced\n  theme_bw()+\n  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+\n  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +\n  labs(x = \"Time (years)\", \n       y = expression(paste(italic(Pf),\"PR\"[2-10])),\n       color = 'Scenario',\n       fill= 'Scenario')\n}\n\nprevalence_plot(full_output)\n", 
+        opts = list(label = "\"mass_vaccination\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "vaccines_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "vaccines_files/figure-html/", 
+        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
+        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
+        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
+        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
+        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
+        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
+        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
+        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
+        max.print = 1000, label = "mass_vaccination", exercise = TRUE, 
+        code = c("month<- 30", "year<- 365", "", "rtssmassparams <- set_mass_pev(", 
+        "  simparams,", "  profile = malariasimulation::rtss_profile, # We will model implementation of the RTSS vaccine.", 
+        "  timesteps = 1 * year,   # The single round of vaccination is at 1 year into the simulation.", 
+        "  coverages = 1,          # The vaccine is given to 100% of the population between the specified ages.", 
+        "  min_wait = 0,           # The minimum acceptable time since the last vaccination is 0 because in our case we are only implementing one round of vaccination.", 
+        "  min_ages = 5 * month,   # The minimum age for the target population to be vaccinated. ", 
+        "  max_ages = 50 * year,   # The maximum age for the target population to be vaccinated.", 
+        "  booster_timestep = 12 * month, # The booster is given at 12 months after the primary series. ", 
+        "  booster_coverage = 0.95,# Coverage of the booster dose is 95%.", 
+        "  booster_profile = list(malariasimulation::rtss_booster_profile) # We will model implementation of the RTSS booster.", 
+        ")", "", "sim_length <- 3 * year", "output <- run_simulation(timesteps = sim_length, parameters = rtssmassparams)", 
+        "", "# Look at model output", "head(output)", "", "", 
+        "# process the model output to see how prevalence + incidence vary over time", 
+        "# make an identifying variable for vaccine +non-vaccine scenario", 
+        "output$scenario<- 'vaccine'", "output_control$scenario<- 'no vaccine'", 
+        "", "# bind control and vaccine outputs together", "full_output<- dplyr::bind_rows(output, output_control)", 
+        "", "# calculate time in years", "full_output$time_year <- full_output$timestep / year", 
+        "", "# calculate incidence in children under 5 here", 
+        "full_output$clinical_incidence<- 1000* full_output$n_inc_clinical_0_1825 / full_output$n_0_1825", 
+        "", "# calculate parasite prevalence", "full_output$pfpr<- full_output$n_detect_730_3650/full_output$n_730_3650", 
+        "", "", "# plot clinical incidence over time", "incidence_plot<- function(full_output){", 
+        "  ", "  ggplot(data= full_output, mapping = aes(x= time_year, y= clinical_incidence, color = scenario, fill= scenario))+", 
+        "  geom_line(alpha = 0.4) +", "  geom_smooth(method = 'loess', span= 0.25) +", 
+        "  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced", 
+        "    theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+        "  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+        "  labs(x = \"Time (years)\", ", "       y = \"Clinical incidence (per 1000 children aged 0-5)\",", 
+        "       color= 'Scenario',", "       fill = 'Scenario')", 
+        "", "}", "", "  ", "incidence_plot(full_output)", "", 
+        "# plot parasite prevalence as well", "prevalence_plot<- function(full_output){", 
+        "", "", "# plot parasite prevalence over time", "ggplot(data= full_output, mapping = aes(x= time_year, y= pfpr, color = scenario, fill= scenario))+", 
+        "  geom_line() +", "  ylim(c(0, 1))+", "  geom_vline(xintercept = 1, linetype= 'dashed', alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced", 
+        "  theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+        "  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+        "  labs(x = \"Time (years)\", ", "       y = expression(paste(italic(Pf),\"PR\"[2-10])),", 
+        "       color = 'Scenario',", "       fill= 'Scenario')", 
+        "}", "", "prevalence_plot(full_output)", ""), out.width.px = 624, 
+        out.height.px = 384, params.src = "mass_vaccination, exercise = TRUE", 
+        fig.num = 0, exercise.df_print = "paged", exercise.checker = "NULL"), 
+    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
+)))
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz2-1", question = structure("What modelled <em>Pf<\u002fem>PR<del>2-10<\u002fdel> does the vaccine model achieve 2.5 years into the simulation?", html = TRUE, class = c("html", 
+"character")), answers = list(structure(list(id = "lnr_ans_d4bd072", 
+    option = "0.40", value = "0.40", label = structure("0.40", html = TRUE, class = c("html", 
+    "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_de049c5", 
+    option = "0.24", value = "0.24", label = structure("0.24", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_b0fcc84", 
+    option = "0.12", value = "0.12", label = structure("0.12", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_2b36856", 
+    option = "0.21", value = "0.21", label = structure("0.21", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
 "character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
-"character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
+"character"))), messages = list(correct = structure("Correct– the vaccine scenario achieves a parasite prevalence noticeably lower than the scenario where no vaccines are administered.", html = TRUE, class = c("html", 
 "character")), try_again = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz2-1-answer", question = "quiz2-1"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 573397667.232991, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 1357083154.86806, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
-learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz2-2", question = structure("If we want to specify clinical treatment regimes for three drugs, how many times must we use set_clinical_treatment()?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_8492e4c", 
-    option = "1", value = "1", label = structure("1", html = TRUE, class = c("html", 
-    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_5ca0af2", 
-    option = "2", value = "2", label = structure("2", html = TRUE, class = c("html", 
-    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_c8593ed", 
-    option = "3", value = "3", label = structure("3", html = TRUE, class = c("html", 
-    "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_9381b02", 
-    option = "4", value = "4", label = structure("4", html = TRUE, class = c("html", 
-    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
-"character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
-"character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
-"character")), try_again = structure("Incorrect", html = TRUE, class = c("html", 
-"character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
-"character")), message = NULL, post_message = NULL), ids = list(
-    answer = "quiz2-2-answer", question = "quiz2-2"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 1770011525.17577, 
-    options = list()), class = c("learnr_radio", "tutorial_question"
-)), session = session)
-</script>
-
-
-<script type="application/shiny-prerendered" data-context="server">
-learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz2-3", question = structure("If we input the vector c(0, 365, 720) as the argument for timesteps into set_clinical_treatment(), which of the following vectors would NOT work for the coverages argument?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_f2fe767", 
-    option = "c(0.4, 0.5, 0.6)", value = "c(0.4, 0.5, 0.6)", 
-    label = structure("c(0.4, 0.5, 0.6)", html = TRUE, class = c("html", 
-    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_5a96ebd", 
-    option = "c(0, 0, 0)", value = "c(0, 0, 0)", label = structure("c(0, 0, 0)", html = TRUE, class = c("html", 
-    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_868cb6c", 
-    option = "c(0.9, 0.4, 0.1)", value = "c(0.9, 0.4, 0.1)", 
-    label = structure("c(0.9, 0.4, 0.1)", html = TRUE, class = c("html", 
-    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_21521", 
-    option = "c(0, 0.5)", value = "c(0, 0.5)", label = structure("c(0, 0.5)", html = TRUE, class = c("html", 
-    "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
-"character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
-"character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
-"character")), try_again = structure("Incorrect", html = TRUE, class = c("html", 
-"character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
-"character")), message = NULL, post_message = NULL), ids = list(
-    answer = "quiz2-3-answer", question = "quiz2-3"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 619393400.711573, 
-    options = list()), class = c("learnr_radio", "tutorial_question"
-)), session = session)
-</script>
- 
-<script type="application/shiny-prerendered" data-context="server">
-`tutorial-exercise-final-exercise-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-final-exercise-code-editor`)), session)
-output$`tutorial-exercise-final-exercise-output` <- renderUI({
-  `tutorial-exercise-final-exercise-result`()
+`tutorial-exercise-space_to_work-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-space_to_work-code-editor`)), session)
+output$`tutorial-exercise-space_to_work-output` <- renderUI({
+  `tutorial-exercise-space_to_work-result`()
 })
 </script>
 
 
 <script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "final-exercise", global_setup = structure(c("", 
-"# Load the required packages:", "library(learnr)", "library(malariasimulation)", 
-"library(ggplot2)", "", "knitr::opts_chunk$set(echo = FALSE)", 
+learnr:::store_exercise_cache(structure(list(label = "space_to_work", global_setup = structure(c("library(learnr)", 
+"library(ggplot2)", "library(data.table)", "library(tidyr)", 
+"library(malariasimulation)", "", "", "knitr::opts_chunk$set(cache=FALSE)", 
+"", "# objects and variables needed across multiple chunks", 
+"# baseline outputs", "year<- 365", "sim_length <- 3 * year", 
+"human_population <- 10000", "starting_EIR <- 20", "", "simparams <- get_parameters(list(", 
+"    human_population = human_population,", "    clinical_incidence_rendering_min_ages = 0,", 
+"    clinical_incidence_rendering_max_ages = 5 * year,", "    individual_mosquitoes = FALSE", 
+"  )", ")", "", "simparams <- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)", 
+"# Run a model with no interventions in a setting with no seasonality", 
+"output_control <- run_simulation(timesteps = sim_length, parameters = simparams)", 
+"", "", "# plot clinical incidence over time", "incidence_plot<- function(full_output){", 
+"  ", "  ggplot(data= full_output, mapping = aes(x= time_year, y= clinical_incidence, color = scenario, fill= scenario))+", 
+"  geom_line(alpha = 0.4) +", "  geom_smooth(method = 'loess', span= 0.25) +", 
+"  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE)+", 
+"    theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+"  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+"  labs(x = \"Time (years)\", ", "       y = \"Clinical incidence (per 1000 children aged 0-5)\",", 
+"       color= 'Scenario',", "       fill = 'Scenario')", "", 
+"}", "", "prevalence_plot<- function(full_output){", "", "", 
+"# plot parasite prevalence over time", "ggplot(data= full_output, mapping = aes(x= time_year, y= pfpr, color = scenario, fill= scenario))+", 
+"  geom_line() +", "  ylim(c(0, 1))+", "  geom_vline(xintercept = 1, linetype= 'dashed', alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced", 
+"  theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+"  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+"  labs(x = \"Time (years)\", ", "       y = expression(paste(italic(Pf),\"PR\"[2-10])),", 
+"       color = 'Scenario',", "       fill= 'Scenario')", "}", 
 ""), chunk_opts = list(label = "setup", include = FALSE)), setup = NULL, 
-    chunks = list(list(label = "final-exercise", code = "", opts = list(
-        label = "\"final-exercise\"", exercise = "TRUE"), engine = "r")), 
-    code_check = NULL, error_check = NULL, check = NULL, solution = NULL, 
-    tests = NULL, options = list(eval = FALSE, echo = TRUE, results = "markup", 
-        tidy = FALSE, tidy.opts = NULL, collapse = FALSE, prompt = FALSE, 
-        comment = NA, highlight = FALSE, size = "normalsize", 
-        background = "#F7F7F7", strip.white = TRUE, cache = 0, 
-        cache.path = "treatment_cache/html/", cache.vars = NULL, 
-        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
-        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
-        fig.align = "default", fig.path = "treatment_files/figure-html/", 
+    chunks = list(list(label = "space_to_work", code = "\n\n", 
+        opts = list(label = "\"space_to_work\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "vaccines_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "vaccines_files/figure-html/", 
         dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
         fig.width = 6.5, fig.height = 4, fig.env = "figure", 
         fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
@@ -848,9 +826,270 @@ learnr:::store_exercise_cache(structure(list(label = "final-exercise", global_se
         aniopts = "controls,loop", warning = TRUE, error = FALSE, 
         message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
         engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
-        max.print = 1000, label = "final-exercise", exercise = TRUE, 
-        code = "", out.width.px = 624, out.height.px = 384, params.src = "final-exercise, exercise=TRUE", 
+        max.print = 1000, label = "space_to_work", exercise = TRUE, 
+        code = c("", "", ""), out.width.px = 624, out.height.px = 384, 
+        params.src = "space_to_work, exercise = TRUE", fig.num = 0L, 
+        exercise.df_print = "paged", exercise.checker = "NULL"), 
+    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
+)))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "mass_vax_example_questions-1", 
+    question = structure("What modelled incidence does the vaccine model achieve 1.5 years into the simulation??", html = TRUE, class = c("html", 
+    "character")), answers = list(structure(list(id = "lnr_ans_c4b17ff", 
+        option = "5 clinical cases per 1000", value = "5 clinical cases per 1000", 
+        label = structure("5 clinical cases per 1000", html = TRUE, class = c("html", 
+        "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_cd9bff7", 
+        option = "2.5 clinical cases per 1000", value = "2.5 clinical cases per 1000", 
+        label = structure("2.5 clinical cases per 1000", html = TRUE, class = c("html", 
+        "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_395e144", 
+        option = "4 clinical cases per 1000", value = "4 clinical cases per 1000", 
+        label = structure("4 clinical cases per 1000", html = TRUE, class = c("html", 
+        "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_1628f0e", 
+        option = "2.0 clinical cases per 1000", value = "2.0 clinical cases per 1000", 
+        label = structure("2.0 clinical cases per 1000", html = TRUE, class = c("html", 
+        "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+    "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
+    "character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
+    "character"))), messages = list(correct = structure("Correct– notice how clinical incidence reaches a low during this period.", html = TRUE, class = c("html", 
+    "character")), try_again = structure("Incorrect", html = TRUE, class = c("html", 
+    "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
+    "character")), message = NULL, post_message = NULL), ids = list(
+        answer = "mass_vax_example_questions-1-answer", question = "mass_vax_example_questions-1"), 
+    loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
+    seed = 684410761.181296, options = list()), class = c("learnr_radio", 
+"tutorial_question")), session = session)
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-age_based-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-age_based-code-editor`)), session)
+output$`tutorial-exercise-age_based-output` <- renderUI({
+  `tutorial-exercise-age_based-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::store_exercise_cache(structure(list(label = "age_based", global_setup = structure(c("library(learnr)", 
+"library(ggplot2)", "library(data.table)", "library(tidyr)", 
+"library(malariasimulation)", "", "", "knitr::opts_chunk$set(cache=FALSE)", 
+"", "# objects and variables needed across multiple chunks", 
+"# baseline outputs", "year<- 365", "sim_length <- 3 * year", 
+"human_population <- 10000", "starting_EIR <- 20", "", "simparams <- get_parameters(list(", 
+"    human_population = human_population,", "    clinical_incidence_rendering_min_ages = 0,", 
+"    clinical_incidence_rendering_max_ages = 5 * year,", "    individual_mosquitoes = FALSE", 
+"  )", ")", "", "simparams <- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)", 
+"# Run a model with no interventions in a setting with no seasonality", 
+"output_control <- run_simulation(timesteps = sim_length, parameters = simparams)", 
+"", "", "# plot clinical incidence over time", "incidence_plot<- function(full_output){", 
+"  ", "  ggplot(data= full_output, mapping = aes(x= time_year, y= clinical_incidence, color = scenario, fill= scenario))+", 
+"  geom_line(alpha = 0.4) +", "  geom_smooth(method = 'loess', span= 0.25) +", 
+"  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE)+", 
+"    theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+"  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+"  labs(x = \"Time (years)\", ", "       y = \"Clinical incidence (per 1000 children aged 0-5)\",", 
+"       color= 'Scenario',", "       fill = 'Scenario')", "", 
+"}", "", "prevalence_plot<- function(full_output){", "", "", 
+"# plot parasite prevalence over time", "ggplot(data= full_output, mapping = aes(x= time_year, y= pfpr, color = scenario, fill= scenario))+", 
+"  geom_line() +", "  ylim(c(0, 1))+", "  geom_vline(xintercept = 1, linetype= 'dashed', alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced", 
+"  theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+"  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+"  labs(x = \"Time (years)\", ", "       y = expression(paste(italic(Pf),\"PR\"[2-10])),", 
+"       color = 'Scenario',", "       fill= 'Scenario')", "}", 
+""), chunk_opts = list(label = "setup", include = FALSE)), setup = NULL, 
+    chunks = list(list(label = "age_based", code = "month<- 30\nyear<- 365\n\n# Add RTS,S EPI strategy\nrtssepiparams <- set_pev_epi(\n  simparams,\n  profile = rtss_profile, # We will model implementation of the RTSS vaccine.\n  timesteps = 1 * year, # Vaccination will begin at 1 year into the simulation.\n  coverages = 1, # Vaccine coverage is 100%.\n  min_wait = 0, # There is no minimum wait since the last vaccination.\n  age = 5 * month, # Individuals will be vaccinated once they reach 5 months of age.\n  booster_timestep = 12 * month, # The booster is administered 12 months following the third dose. \n  booster_coverage = 0.95, # 95% of those vaccinated with the primary series will be boosted.\n  booster_profile = list(rtss_booster_profile) # We will model implementation of the RTSS booster.\n)\n\noutput <- run_simulation(timesteps = sim_length, parameters = rtssepiparams)\n\n\n# now process and plot as we saw previously\n# make an identifying variable for vaccine + nonvaccine scenario\noutput$scenario<- 'vaccine' \noutput_control$scenario<- 'no vaccine'\n\nfull_output<- dplyr::bind_rows(output, output_control) # bind control and vaccine outputs together\nfull_output$time_year <- full_output$timestep / 365 # calculate time in years\n\n# calculate incidence in children under 5 here\nfull_output$clinical_incidence<- 1000* full_output$n_inc_clinical_0_1825 / full_output$n_0_1825\n\n\nincidence_plot(full_output)\n", 
+        opts = list(label = "\"age_based\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "vaccines_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "vaccines_files/figure-html/", 
+        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
+        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
+        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
+        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
+        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
+        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
+        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
+        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
+        max.print = 1000, label = "age_based", exercise = TRUE, 
+        code = c("month<- 30", "year<- 365", "", "# Add RTS,S EPI strategy", 
+        "rtssepiparams <- set_pev_epi(", "  simparams,", "  profile = rtss_profile, # We will model implementation of the RTSS vaccine.", 
+        "  timesteps = 1 * year, # Vaccination will begin at 1 year into the simulation.", 
+        "  coverages = 1, # Vaccine coverage is 100%.", "  min_wait = 0, # There is no minimum wait since the last vaccination.", 
+        "  age = 5 * month, # Individuals will be vaccinated once they reach 5 months of age.", 
+        "  booster_timestep = 12 * month, # The booster is administered 12 months following the third dose. ", 
+        "  booster_coverage = 0.95, # 95% of those vaccinated with the primary series will be boosted.", 
+        "  booster_profile = list(rtss_booster_profile) # We will model implementation of the RTSS booster.", 
+        ")", "", "output <- run_simulation(timesteps = sim_length, parameters = rtssepiparams)", 
+        "", "", "# now process and plot as we saw previously", 
+        "# make an identifying variable for vaccine + nonvaccine scenario", 
+        "output$scenario<- 'vaccine' ", "output_control$scenario<- 'no vaccine'", 
+        "", "full_output<- dplyr::bind_rows(output, output_control) # bind control and vaccine outputs together", 
+        "full_output$time_year <- full_output$timestep / 365 # calculate time in years", 
+        "", "# calculate incidence in children under 5 here", 
+        "full_output$clinical_incidence<- 1000* full_output$n_inc_clinical_0_1825 / full_output$n_0_1825", 
+        "", "", "incidence_plot(full_output)", ""), out.width.px = 624, 
+        out.height.px = 384, params.src = "age_based, exercise = TRUE", 
+        fig.num = 0, exercise.df_print = "paged", exercise.checker = "NULL"), 
+    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
+)))
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-more_space_to_work-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-more_space_to_work-code-editor`)), session)
+output$`tutorial-exercise-more_space_to_work-output` <- renderUI({
+  `tutorial-exercise-more_space_to_work-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::store_exercise_cache(structure(list(label = "more_space_to_work", global_setup = structure(c("library(learnr)", 
+"library(ggplot2)", "library(data.table)", "library(tidyr)", 
+"library(malariasimulation)", "", "", "knitr::opts_chunk$set(cache=FALSE)", 
+"", "# objects and variables needed across multiple chunks", 
+"# baseline outputs", "year<- 365", "sim_length <- 3 * year", 
+"human_population <- 10000", "starting_EIR <- 20", "", "simparams <- get_parameters(list(", 
+"    human_population = human_population,", "    clinical_incidence_rendering_min_ages = 0,", 
+"    clinical_incidence_rendering_max_ages = 5 * year,", "    individual_mosquitoes = FALSE", 
+"  )", ")", "", "simparams <- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)", 
+"# Run a model with no interventions in a setting with no seasonality", 
+"output_control <- run_simulation(timesteps = sim_length, parameters = simparams)", 
+"", "", "# plot clinical incidence over time", "incidence_plot<- function(full_output){", 
+"  ", "  ggplot(data= full_output, mapping = aes(x= time_year, y= clinical_incidence, color = scenario, fill= scenario))+", 
+"  geom_line(alpha = 0.4) +", "  geom_smooth(method = 'loess', span= 0.25) +", 
+"  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE)+", 
+"    theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+"  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+"  labs(x = \"Time (years)\", ", "       y = \"Clinical incidence (per 1000 children aged 0-5)\",", 
+"       color= 'Scenario',", "       fill = 'Scenario')", "", 
+"}", "", "prevalence_plot<- function(full_output){", "", "", 
+"# plot parasite prevalence over time", "ggplot(data= full_output, mapping = aes(x= time_year, y= pfpr, color = scenario, fill= scenario))+", 
+"  geom_line() +", "  ylim(c(0, 1))+", "  geom_vline(xintercept = 1, linetype= 'dashed', alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced", 
+"  theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+"  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+"  labs(x = \"Time (years)\", ", "       y = expression(paste(italic(Pf),\"PR\"[2-10])),", 
+"       color = 'Scenario',", "       fill= 'Scenario')", "}", 
+""), chunk_opts = list(label = "setup", include = FALSE)), setup = NULL, 
+    chunks = list(list(label = "more_space_to_work", code = "", 
+        opts = list(label = "\"more_space_to_work\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "vaccines_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "vaccines_files/figure-html/", 
+        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
+        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
+        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
+        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
+        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
+        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
+        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
+        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
+        max.print = 1000, label = "more_space_to_work", exercise = TRUE, 
+        code = "", out.width.px = 624, out.height.px = 384, params.src = "more_space_to_work, exercise = TRUE", 
         fig.num = 0L, exercise.df_print = "paged", exercise.checker = "NULL"), 
+    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
+)))
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "age_based_questions-1", 
+    question = structure("At what point does parasite prevalence begin to diverge between vaccine and non-vaccine scenario?", html = TRUE, class = c("html", 
+    "character")), answers = list(structure(list(id = "lnr_ans_b1a09dd", 
+        option = "3 years in", value = "3 years in", label = structure("3 years in", html = TRUE, class = c("html", 
+        "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_a2315b0", 
+        option = "0.5 years in", value = "0.5 years in", label = structure("0.5 years in", html = TRUE, class = c("html", 
+        "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_6c24999", 
+        option = "2 years in", value = "2 years in", label = structure("2 years in", html = TRUE, class = c("html", 
+        "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+    "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
+    "character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
+    "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
+    "character")), try_again = structure("Incorrect", html = TRUE, class = c("html", 
+    "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
+    "character")), message = NULL, post_message = NULL), ids = list(
+        answer = "age_based_questions-1-answer", question = "age_based_questions-1"), 
+    loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
+    seed = 1840548673.64293, options = list()), class = c("learnr_radio", 
+"tutorial_question")), session = session)
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-booster_space-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-booster_space-code-editor`)), session)
+output$`tutorial-exercise-booster_space-output` <- renderUI({
+  `tutorial-exercise-booster_space-result`()
+})
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::store_exercise_cache(structure(list(label = "booster_space", global_setup = structure(c("library(learnr)", 
+"library(ggplot2)", "library(data.table)", "library(tidyr)", 
+"library(malariasimulation)", "", "", "knitr::opts_chunk$set(cache=FALSE)", 
+"", "# objects and variables needed across multiple chunks", 
+"# baseline outputs", "year<- 365", "sim_length <- 3 * year", 
+"human_population <- 10000", "starting_EIR <- 20", "", "simparams <- get_parameters(list(", 
+"    human_population = human_population,", "    clinical_incidence_rendering_min_ages = 0,", 
+"    clinical_incidence_rendering_max_ages = 5 * year,", "    individual_mosquitoes = FALSE", 
+"  )", ")", "", "simparams <- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)", 
+"# Run a model with no interventions in a setting with no seasonality", 
+"output_control <- run_simulation(timesteps = sim_length, parameters = simparams)", 
+"", "", "# plot clinical incidence over time", "incidence_plot<- function(full_output){", 
+"  ", "  ggplot(data= full_output, mapping = aes(x= time_year, y= clinical_incidence, color = scenario, fill= scenario))+", 
+"  geom_line(alpha = 0.4) +", "  geom_smooth(method = 'loess', span= 0.25) +", 
+"  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE)+", 
+"    theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+"  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+"  labs(x = \"Time (years)\", ", "       y = \"Clinical incidence (per 1000 children aged 0-5)\",", 
+"       color= 'Scenario',", "       fill = 'Scenario')", "", 
+"}", "", "prevalence_plot<- function(full_output){", "", "", 
+"# plot parasite prevalence over time", "ggplot(data= full_output, mapping = aes(x= time_year, y= pfpr, color = scenario, fill= scenario))+", 
+"  geom_line() +", "  ylim(c(0, 1))+", "  geom_vline(xintercept = 1, linetype= 'dashed', alpha = 10, show.legend = TRUE)+ # the year the vaccine is introduced", 
+"  theme_bw()+", "  scale_color_manual(values= c(\"#E69F00\", \"#56B4E9\"))+", 
+"  scale_fill_manual(values = c(\"#E69F00\", \"#56B4E9\")) +", 
+"  labs(x = \"Time (years)\", ", "       y = expression(paste(italic(Pf),\"PR\"[2-10])),", 
+"       color = 'Scenario',", "       fill= 'Scenario')", "}", 
+""), chunk_opts = list(label = "setup", include = FALSE)), setup = NULL, 
+    chunks = list(list(label = "booster_space", code = "\n", 
+        opts = list(label = "\"booster_space\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "vaccines_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "vaccines_files/figure-html/", 
+        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
+        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
+        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
+        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
+        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
+        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
+        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
+        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
+        max.print = 1000, label = "booster_space", exercise = TRUE, 
+        code = c("", ""), out.width.px = 624, out.height.px = 384, 
+        params.src = "booster_space, exercise =TRUE", fig.num = 0L, 
+        exercise.df_print = "paged", exercise.checker = "NULL"), 
     engine = "r", version = "4"), class = c("r", "tutorial_exercise"
 )))
 </script>
@@ -862,10 +1101,9 @@ learnr:::store_exercise_cache(structure(list(label = "final-exercise", global_se
 <!--/html_preserve-->
 <!--html_preserve-->
 <script type="application/shiny-prerendered" data-context="execution_dependencies">
-{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63]}},"value":[{"type":"character","attributes":{},"value":["backports","base","bslib","cachem","checkmate","cli","colorspace","commonmark","compiler","datasets","digest","dplyr","ellipsis","evaluate","fansi","fastmap","fontawesome","generics","ggplot2","glue","graphics","grDevices","grid","gtable","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","later","learnr","lifecycle","magrittr","malariasimulation","markdown","MASS","methods","mime","munsell","pillar","pkgconfig","promises","R6","Rcpp","rlang","rmarkdown","rprojroot","rstudioapi","sass","scales","shiny","stats","tibble","tidyselect","tools","utf8","utils","vctrs","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["1.4.1","4.4.0","0.7.0","1.0.8","2.3.1","3.6.2","2.1-0","1.9.1","4.4.0","4.4.0","0.6.35","1.1.4","0.3.2","0.23","1.0.6","1.1.1","0.5.2","0.1.3","3.5.1","1.7.0","4.4.0","4.4.0","4.4.0","0.3.5","0.5.8.1","1.6.4","1.6.15","0.1.4","1.8.8","1.46","1.3.2","0.11.5","1.0.4","2.0.3","1.6.1","1.12","7.3-60.2","4.4.0","0.12","0.5.1","1.9.0","2.0.3","1.3.0","2.5.1","1.0.12","1.1.3","2.26","2.0.4","0.16.0","0.4.9","1.3.0","1.8.1.1","4.4.0","3.2.1","1.2.1","4.4.0","1.2.4","4.4.0","0.6.5","3.0.0","0.43","1.8-4","2.3.8"]}]}]}
+{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69]}},"value":[{"type":"character","attributes":{},"value":["backports","base","bslib","cachem","checkmate","cli","colorspace","commonmark","compiler","data.table","datasets","digest","dplyr","ellipsis","evaluate","fansi","fastmap","fontawesome","generics","ggplot2","glue","graphics","grDevices","grid","gtable","htmltools","htmlwidgets","httpuv","individual","jquerylib","jsonlite","knitr","later","learnr","lifecycle","magrittr","malariaEquilibrium","malariasimulation","markdown","MASS","methods","mime","munsell","pillar","pkgconfig","promises","purrr","R6","Rcpp","rlang","rmarkdown","rprojroot","rstudioapi","sass","scales","shiny","statmod","stats","tibble","tidyr","tidyselect","tools","utf8","utils","vctrs","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["1.4.1","4.4.0","0.7.0","1.0.8","2.3.1","3.6.2","2.1-0","1.9.1","4.4.0","1.15.4","4.4.0","0.6.35","1.1.4","0.3.2","0.23","1.0.6","1.1.1","0.5.2","0.1.3","3.5.1","1.7.0","4.4.0","4.4.0","4.4.0","0.3.5","0.5.8.1","1.6.4","1.6.15","0.1.16","0.1.4","1.8.8","1.46","1.3.2","0.11.5","1.0.4","2.0.3","1.0.1","1.6.1","1.12","7.3-60.2","4.4.0","0.12","0.5.1","1.9.0","2.0.3","1.3.0","1.0.2","2.5.1","1.0.12","1.1.3","2.26","2.0.4","0.16.0","0.4.9","1.3.0","1.8.1.1","1.5.0","4.4.0","3.2.1","1.3.1","1.2.1","4.4.0","1.2.4","4.4.0","0.6.5","3.0.0","0.43","1.8-4","2.3.8"]}]}]}
 </script>
 <!--/html_preserve-->
-</div>
 </div>
 
 </article> <!-- topics -->
@@ -877,7 +1115,7 @@ learnr:::store_exercise_cache(structure(list(label = "final-exercise", global_se
 
 <!-- begin doc-metadata -->
 <div id="doc-metadata">
-<h1 class="title toc-ignore" style="display:none;">Treatment</h1>
+<h1 class="title toc-ignore" style="display:none;">Vaccines</h1>
 </div>
 <!-- end doc-metadata -->
 

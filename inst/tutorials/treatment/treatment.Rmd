@@ -105,11 +105,6 @@ quiz(
     answer("AL"),
     answer("DHA-PQP"),
     allow_retry = TRUE
-  ),
-  question("The drug_rel_c of SP-AQ in the SP_AQ_params set is 4.30",
-    answer("TRUE"),
-    answer("FALSE", correct = TRUE),
-    allow_retry = TRUE
   )
 )
 
