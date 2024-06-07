@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```
 
-# 1. Introduction
+# Introduction
 
 Now that we know how to set up and run basic simulations using `malariasimulation`, we can start to think about how we build interventions into our simulations and visualise how they affect malaria transmission dynamics. One such intervention is clinical treatment, or case management, in which individuals that get a clinical case of malaria are treated with an antimalarial drug.
 
@@ -30,7 +30,11 @@ To simulate clinical treatment in malariasimulation, there are six steps:
 5.  Run the simulation (`run_simulation()`)
 6.  Process the simulation outputs
 
-Using these six steps, we can simulate clinical treatment regimes that span from the very simple (single drug at a single coverage level through time) to the quite complex (multiple drugs with time-varying coverages). As we saw earlier, the first step when using malariasimulation is to load a set of parameters using `get_parameters()`:
+Using these six steps, we can simulate clinical treatment regimes that span from the very simple (single drug at a single coverage level through time) to the quite complex (multiple drugs with time-varying coverages).
+
+## 2. Loading antimalarial drug parameters
+
+As we saw earlier, the first step when using malariasimulation is to load a set of parameters using `get_parameters()`:
 
 ```{r load-malsim-parameters, exercise = TRUE, exercise.eval = FALSE}
 
@@ -38,8 +42,6 @@ Using these six steps, we can simulate clinical treatment regimes that span from
 parameters <- get_parameters(overrides = list(human_population = 1000))
 
 ```
-
-## 2. Loading antimalarial drug parameters
 
 The second step is to load the parameters for the drug(s) we want to simulate into our list of parameters. The `malariasimulation` package has in-built parameter sets for 3 drugs:
 
