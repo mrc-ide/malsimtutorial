@@ -19,14 +19,11 @@ month <- 30
 cols <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # Plotting clinical incidence 
-plot_inci <- function(type = "not seasonal"){
-  if(type == "seasonal"){
-    comparison <- output_seas_control
-    vaccinetime <- round(year + (peak - month * 3.5), 0) / 365
-  } else {
+plot_inci <- function(output){
+
     comparison <- output_control
     vaccinetime <- 1
-  }
+  
   output$clinical_incidence <- 1000 * output$n_inc_clinical_0_1825 / output$n_0_1825
   output$time_year <- output$timestep / year
   comparison$clinical_incidence <- 1000 * comparison$n_inc_clinical_0_1825 / comparison$n_0_1825
@@ -56,14 +53,11 @@ plot_inci <- function(type = "not seasonal"){
 }
 
 # Plot parasite prevalence
-plot_prev <- function(type = "not seasonal"){
-    if(type == "seasonal"){
-    comparison <- output_seas_control
-    vaccinetime <- round(year + (peak - month * 3.5), 0) / 365
-  } else {
+plot_prev <- function(output){
+
     comparison <- output_control
     vaccinetime <- 1
-  }
+  
   output$time_year <- output$timestep / year
   comparison$time_year <- comparison$timestep / year
 
@@ -84,7 +78,7 @@ plot_prev <- function(type = "not seasonal"){
 }
 
 # Plot dose timing
-plot_doses <- function(){
+plot_doses <- function(output){
   output$month <- ceiling(output$timestep / month)
   doses <- output[, c(grep("n_pev" , names(output)), grep("month", names(output)))]
   doses <- aggregate(cbind(doses[1:4]),
@@ -102,6 +96,24 @@ plot_doses <- function(){
   legend("topleft", box.lty = 0, legend = c("Dose 1","Dose 2","Dose 3","Booster 1"),
          fill = cols[1:6], bg="transparent", cex = 0.8, y.intersp = 1.5)
 }
+
+# Control parameters and model output
+sim_length <- 3 * year
+human_population <- 10000
+starting_EIR <- 20
+
+simparams <- get_parameters(list(
+    human_population = human_population,
+    clinical_incidence_rendering_min_ages = 0,
+    clinical_incidence_rendering_max_ages = 5 * year,
+    individual_mosquitoes = FALSE
+  )
+)
+
+simparams <- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)
+
+# Run a model with no interventions in a setting with no seasonality
+output_control <- run_simulation(timesteps = sim_length * 2, parameters = simparams)
 ```
 
 ## More exercises: Vaccination
@@ -123,15 +135,16 @@ malariasimulation::rtss_booster_profile # Parameters for the fourth (booster) do
 
 These parameters are used to model the relationship between antibody titre and vaccine efficacy, based on previous modelling work conducted in the [group](https://pubmed.ncbi.nlm.nih.gov/37080831/). The meaning of these parameters can be found [here](https://mrc-ide.github.io/malariasimulation/reference/create_pev_profile.html) -- you will likely not need to modify them directly, but know that these parameters impact the magnitude and duration of vaccine impact. 
 
-```{r quiz1}
+```{r quiz1, echo= FALSE}
 
 quiz(caption = "Vaccine Efficacy Question",
      question_numeric(
        "What is the vaccine efficacy of the first three doses of the RTS,S vaccine?",
-       answer(0.93, correct = TRUE), allow_retry = T, correct = ("Correct! This means that the maximum efficacy against infection is 93%."))
+       answer(0.93, correct = TRUE), allow_retry = T, correct = "Correct! This means that the maximum efficacy against infection is 93%.")
      )
 
 ```
+
 
 Now, let's obtain a set of parameters and run a baseline model. We will use `set_equilibrium()` to intialise the model at a certain EIR.
 
@@ -159,14 +172,15 @@ output_control <- run_simulation(timesteps = sim_length * 2, parameters = simpar
 ```
 
 
-### Mass vaccination strategy
+## Mass vaccination strategy
 
 We can implement a mass vaccination strategy in which all people between 5 months and 50 years old are vaccinated with 3 doses of RTS,S, followed by a booster 12 months after:
 
 ```{r mass_vaccination, exercise = TRUE}
+
 rtssmassparams <- set_mass_pev(
   simparams,
-  profile = rtss_profile, # We will model implementation of the RTSS vaccine.
+  profile = malariasimulation::rtss_profile, # We will model implementation of the RTSS vaccine.
   timesteps = 1 * year,   # The single round of vaccination is at 1 year into the simulation.
   coverages = 1,          # The vaccine is given to 100% of the population between the specified ages.
   min_wait = 0,           # The minimum acceptable time since the last vaccination is 0 because in our case we are only implementing one round of vaccination.
@@ -174,24 +188,20 @@ rtssmassparams <- set_mass_pev(
   max_ages = 50 * year,   # The maximum age for the target population to be vaccinated.
   booster_timestep = 12 * month, # The booster is given at 12 months after the primary series. 
   booster_coverage = 0.95,# Coverage of the booster dose is 95%.
-  booster_profile = list(rtss_booster_profile) # We will model implementation of the RTSS booster.
+  booster_profile = list(malariasimulation::rtss_booster_profile) # We will model implementation of the RTSS booster.
 )
 
+sim_length <- 3 * year
 output <- run_simulation(timesteps = sim_length, parameters = rtssmassparams)
 
-plot_inci()
-plot_prev()
-```
-
-
-We can visualize the number of doses given out in this strategy as shown:
-
-```{r mass_doses, exercise = TRUE}
-plot_doses()
+# visualize outputs
+plot_inci(output)
+plot_prev(output)
+plot_doses(output)
 
 ```
 
-```{r quiz}
+```{r quiz2, echo= FALSE}
 quiz(caption = "Mass Vaccination Questions",
           question("What modelled PFPR does the vaccine model achieve 2.5 years into the simulation?",
               answer("0.40", correct =TRUE),
@@ -219,28 +229,11 @@ Plot incidence and the doses delivered for this model.
 
 ```{r space_to_work, exercise = TRUE}
 
-# 
-# rtssmassparams <- set_mass_pev(
-#   simparams,
-#   profile = rtss_profile, # We will model implementation of the RTSS vaccine.
-#   timesteps = 1 * year,   # The single round of vaccination is at 1 year into the simulation.
-#   coverages = 0.5,          # The vaccine is given to 100% of the population between the specified ages.
-#   min_wait = 0,           # The minimum acceptable time since the last vaccination is 0 because in our case we are only implementing one round of vaccination.
-#   min_ages = 0 * month,   # The minimum age for the target population to be vaccinated. 
-#   max_ages = 5 * year,   # The maximum age for the target population to be vaccinated.
-#   booster_timestep = 5 * month, # The booster is given at 12 months after the primary series. 
-#   booster_coverage = 0.75,# Coverage of the booster dose is 95%.
-#   booster_profile = list(rtss_booster_profile) # We will model implementation of the RTSS booster.
-# )
-# 
-# output <- run_simulation(timesteps = sim_length, parameters = rtssmassparams)
-# 
-# plot_inci()
-# plot_prev()
-# plot_doses()
+
+
 ```
 
-```{r mass_vax_example_questions}
+```{r mass_vax_example_questions, echo= FALSE}
 quiz(caption = "Mass Vaccination Example",
           question("What modelled incidence does the vaccine model achieve 1.5 years into the simulation??",
               answer("5 clinical cases per 1000"),
@@ -276,16 +269,16 @@ rtssepiparams <- set_pev_epi(
 output <- run_simulation(timesteps = sim_length * 2, parameters = rtssepiparams)
 
 
-plot_inci()
-plot_prev()
+plot_inci(output)
+plot_prev(output)
 
-plot_doses()
+plot_doses(output)
 ```
 
 Notice how, with an age-based strategy, vaccines are administered continuously throughout the simulation period, rather than at a few fixed points.
 
 
-```{r age_based_example_questions}
+```{r age_based_example_questions, echo= FALSE}
 quiz(caption = "Age-based vaccination",
           question("About how many dose #1s are administered 50 months into the simulation?",
               answer("55 doses", correct= TRUE),
@@ -313,30 +306,9 @@ Plot incidence and the doses delivered for this model.
 
 ```{r more_space_to_work, exercise = TRUE}
 
-# # Add RTS,S EPI strategy
-# rtssepiparams <- set_pev_epi(
-#   simparams,
-#   profile = rtss_profile,
-#   timesteps = 1 * year, 
-#   coverages = 0.42,
-#   min_wait = 0, 
-#   age = 6 * month,
-#   booster_timestep = 12 * month, 
-#   booster_coverage = 0.25, 
-#   booster_profile = list(rtss_booster_profile) 
-# )
-# 
-# output <- run_simulation(timesteps = sim_length * 2, parameters = rtssepiparams)
-# 
-# 
-# plot_inci()
-# plot_prev()
-# 
-# plot_doses()
-
 ```
 
-```{r age_based_questions}
+```{r age_based_questions, echo = FALSE}
 quiz(caption = "Age-based  example",
           question("About how many doses total are administered 40 months into the simulation?",
               answer("40 doses"),
