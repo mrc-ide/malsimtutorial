@@ -9,11 +9,10 @@ from: markdown+emoji
 
 -   [Introduction](https://mrc-ide.github.io/malsimtutorial/presentations/Introduction.html)
 
-
 ## Practicals associated with this workshop
 
 Workshop practicals are included as part of the :package: \[malsimtutorial\]. They can be accessed using the `run_tutorial()` function.
 
 -   `malsimtutorial::run_tutorial("Introduction")`
--   `malsimtutorial::run_tutorial("TODO")`
--   `malsimtutorial::run_tutorial("TODO")`
+-   `malsimtutorial::run_tutorial("treatment")`
+-   `malsimtutorial::run_tutorial("bednets")`
