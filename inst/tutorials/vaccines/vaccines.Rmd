@@ -22,7 +22,7 @@ knitr::opts_chunk$set(cache=FALSE)
 
 Now that you have been introduced to malariasimulation, we will review a few vaccine use cases that might be helpful. This tutorial is largely based on the malariasimulation vaccine [vignette](https://mrc-ide.github.io/malariasimulation/articles/Vaccines.html)-- refer to this for more practice! 
 
-We can use malariasimulation to implement a theoretical transmission blocking vaccine (TBV) or a pre-erythrocytic vaccine. Vaccines can be administered using either a mass vaccination strategy or an age-based strategy. 
+We can use malariasimulation to implement a theoretical transmission blocking vaccine (TBV) or a pre-erythrocytic vaccine (PEV). Vaccines can be administered using either a mass vaccination strategy or an age-based strategy. 
 
 To carry this out, we can utilize the functions `set_pev_epi()` or `set_mass_pev().` For the purposes of this training, we will focus on the administration of a pre-erythrocytic vaccine (IE, RTS,S or R21).
 
