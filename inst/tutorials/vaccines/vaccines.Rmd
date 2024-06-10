@@ -1,0 +1,393 @@
+---
+title: "Vaccines"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+
+# Load the requisite packages:
+library(learnr)
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(malariasimulation)
+
+# Set chunk options:
+knitr::opts_chunk$set(cache=FALSE)
+
+```
+
+## Vaccination
+
+Now that you have been introduced to malariasimulation, we will review a few vaccine use cases that might be helpful. This tutorial is largely based on the malariasimulation vaccine [vignette](https://mrc-ide.github.io/malariasimulation/articles/Vaccines.html)-- refer to this for more practice! 
+
+We can use malariasimulation to implement a theoretical transmission blocking vaccine (TBV) or a pre-erythrocytic vaccine (PEV). Vaccines can be administered using either a mass vaccination strategy or an age-based strategy. 
+
+To carry this out, we can utilize the functions `set_pev_epi()` or `set_mass_pev().` For the purposes of this training, we will focus on the administration of a pre-erythrocytic vaccine (IE, RTS,S or R21).
+
+Here is a schematic of what we will carry out:
+
+![](images/vaccines_malsim_tutorial.png){width=100%}
+
+First, let's look at the vaccine efficacy parameters for RTS,S. These are saved within malariasimulation:
+
+```{r efficacy_profile, exercise = TRUE}
+
+malariasimulation::rtss_profile # Parameters for the first three doses of RTS,S
+
+malariasimulation::rtss_booster_profile # Parameters for the fourth (booster) dose of RTS,S
+```
+
+These parameters are used to model the relationship between antibody titre and vaccine efficacy, based on previous modelling work conducted in the [group](https://pubmed.ncbi.nlm.nih.gov/37080831/). The meaning of these parameters can be found [here](https://mrc-ide.github.io/malariasimulation/reference/create_pev_profile.html) -- you will likely not need to modify them directly, but know that these parameters impact the magnitude and duration of vaccine impact. 
+
+```{r quiz1, echo= FALSE}
+
+quiz(caption = "Vaccine Efficacy Question",
+     question_numeric(
+       "What is the maximum vaccine efficacy of the first three doses of the RTS,S vaccine?",
+       answer(0.93, correct = TRUE), allow_retry = T, correct = "Correct! This means that the maximum efficacy against infection is 93%.")
+     )
+
+```
+
+
+Now, let's obtain a set of parameters and run a baseline model. We will use `set_equilibrium()` to initialise the model at a certain EIR.
+
+```{r baseline_model, exercise = TRUE}
+
+# set a random seed so results are more comparable between runs
+set.seed(780)
+
+# Establish some model parameters:
+year <- 365
+month <- 30
+sim_length <- 3 * year
+human_population <- 10000
+starting_EIR <- 20
+
+# Establish the malariasimulation parameter list:
+simparams <- get_parameters(list(
+    human_population = human_population,
+    clinical_incidence_rendering_min_ages = 0,
+    clinical_incidence_rendering_max_ages = 5 * year,
+    individual_mosquitoes = FALSE
+  )
+)
+
+# Equilibrate the parameter list to the initial EIR:
+simparams <- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)
+
+# Run a simulation with no interventions in a setting with no seasonality
+output_control <- run_simulation(timesteps = sim_length, parameters = simparams)
+
+# Let's take a look at the model output
+head(output_control)
+
+# Plot the clinical incidence through time:
+output_control |>
+  mutate(scenario = 'no vaccine') |>
+  mutate(time_year = timestep / year) |>
+  mutate(clinical_incidence = 1000 * (n_inc_clinical_0_1825 / n_0_1825)) |>
+  ggplot(aes(x = time_year, y = n_infections, colour = scenario, fill = scenario)) +
+  geom_line(alpha = 0.4) +
+  geom_smooth(method = 'loess', span= 0.25) +
+  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE) +
+  theme_bw() +
+  scale_color_manual(values= c("#E69F00", "#56B4E9")) +
+  scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
+  labs(x = "Time (years)", 
+       y = expression(paste(italic(Pf),"PR"[2-10])),
+       color= 'Scenario',
+       fill = 'Scenario')
+
+# Plot the prevalence in ages 2-10 through time:
+output_control |>
+  mutate(scenario = 'no vaccine') |>
+  mutate(time_year = timestep / year) |>
+  mutate(pfpr = n_detect_730_3650 / n_730_3650) |>
+  ggplot(aes(x = time_year, y = pfpr, colour = scenario, fill = scenario)) +
+  geom_line(alpha = 0.4) +
+  geom_smooth(method = 'loess', span= 0.25) +
+  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE) +
+  theme_bw() +
+  scale_color_manual(values= c("#E69F00", "#56B4E9")) +
+  scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
+  labs(x = "Time (years)", 
+       y = "Clinical incidence (per 1000 children aged 0-5)",
+       color= 'Scenario',
+       fill = 'Scenario')
+
+```
+
+## Mass vaccination strategy
+
+We can implement a mass vaccination strategy in which all people between 5 months and 50 years old are vaccinated with 3 doses of RTS,S, followed by a booster 12 months after.
+
+We will carry out the following steps:
+
+- Parameterize the vaccine strategy
+- Run the simulation
+- Calculate incidence and parasite prevalence
+- Visualize incidence and parasite prevalence over time
+
+```{r mass_vaccination, exercise = TRUE}
+
+# set a random seed so results are more comparable between runs
+set.seed(780)
+
+# Establish some model parameters:
+year <- 365
+month <- 30
+sim_length <- 3 * year
+human_population <- 10000
+starting_EIR <- 20
+
+# Establish the malariasimulation parameter list:
+simparams <- get_parameters(list(
+    human_population = human_population,
+    clinical_incidence_rendering_min_ages = 0,
+    clinical_incidence_rendering_max_ages = 5 * year,
+    individual_mosquitoes = FALSE
+  )
+)
+
+# Equilibrate the parameter list to the initial EIR:
+simparams <- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)
+
+# Parameterise a PEV campaign using the set_mass_pev() function: 
+rtssmassparams <- set_mass_pev(
+  simparams,
+  profile = malariasimulation::rtss_profile, # We will model implementation of the RTSS vaccine.
+  timesteps = 1 * year,   # The single round of vaccination is at 1 year into the simulation.
+  coverages = 1,          # The vaccine is given to 100% of the population between the specified ages.
+  min_wait = 0,           # The minimum acceptable time since last vaccination is 0 because we are only implementing one round of vaccination.
+  min_ages = 5 * month,   # The minimum age for the target population to be vaccinated. 
+  max_ages = 50 * year,   # The maximum age for the target population to be vaccinated.
+  booster_timestep = 12 * month, # The booster is given at 12 months after the primary series. 
+  booster_coverage = 0.95,# Coverage of the booster dose is 95%.
+  booster_profile = list(malariasimulation::rtss_booster_profile) # We will model implementation of the RTSS booster.
+)
+
+# Specify a simulation duration:
+sim_length <- 3 * year
+
+# Run the PEV simulations:
+output_no_vaccine <- run_simulation(timesteps = sim_length, parameters = simparams)
+output_vaccine <- run_simulation(timesteps = sim_length, parameters = rtssmassparams)
+
+# Look at model outputs:
+head(output_no_vaccine)
+head(output_vaccine)
+
+# Add columns with identifiers to each output dataframe:
+output_vaccine$scenario <- 'vaccine'
+output_no_vaccine$scenario <- 'no vaccine'
+
+# Bind the no-vaccine and vaccine outputs together:
+full_output <- dplyr::bind_rows(output_no_vaccine, output_vaccine)
+
+# Add column containing the time in years:
+full_output$time_year <- full_output$timestep / year
+
+# Calculate the clinical incidence in children under 5 here:
+full_output$clinical_incidence <- 1000 * full_output$n_inc_clinical_0_1825 / full_output$n_0_1825
+
+# calculate parasite prevalence in children aged 2-10:
+full_output$pfpr <- full_output$n_detect_730_3650/full_output$n_730_3650
+
+# Plot the clinical incidence through time:
+full_output |>
+  ggplot(aes(x = time_year, y = n_infections, colour = scenario, fill = scenario)) +
+  geom_line(alpha = 0.4) +
+  geom_smooth(method = 'loess', span= 0.25) +
+  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE) +
+  theme_bw() +
+  scale_color_manual(values= c("#E69F00", "#56B4E9")) +
+  scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
+  labs(x = "Time (years)", 
+       y = expression(paste(italic(Pf),"PR"[2-10])),
+       color= 'Scenario',
+       fill = 'Scenario')
+
+# Plot the prevalence in ages 2-10 through time:
+full_output |>
+  ggplot(aes(x = time_year, y = pfpr, colour = scenario, fill = scenario)) +
+  geom_line(alpha = 0.4) +
+  geom_smooth(method = 'loess', span= 0.25) +
+  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE) +
+  theme_bw() +
+  scale_color_manual(values= c("#E69F00", "#56B4E9")) +
+  scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
+  labs(x = "Time (years)", 
+       y = "Clinical incidence (per 1000 children aged 0-5)",
+       color= 'Scenario',
+       fill = 'Scenario')
+
+```
+
+```{r quiz2, echo= FALSE}
+quiz(caption = "Mass Vaccination Questions",
+          question("What modelled *Pf*PR~2-10~ does the vaccine model achieve 2.5 years into the simulation?",
+              answer("0.40", correct =TRUE),
+              answer("0.24"),
+              answer("0.12"),
+              answer("0.21"), correct = "Correct-- the vaccine scenario achieves a parasite prevalence noticeably lower than the scenario where no vaccines are administered.", allow_retry = T)
+)
+
+```
+
+## Implement your mass vaccination strategy
+
+Use this space to implement a mass vaccination strategy that:
+
+- Is targeted at children under 5 years old
+- Includes a booster delivered 5 months after the first three doses
+- Reaches a coverage level of 50% for the first three doses and 75% for the booster dose.
+
+Plot incidence and the doses delivered for this model.
+
+```{r space_to_work, exercise = TRUE}
+
+
+
+```
+
+<div id="filter-hint">
+**Hint:** Use `set_mass_pev()` and modify the arguments based on the previous exercise.
+</div>
+
+```{r mass_vax_example_questions, echo= FALSE}
+quiz(caption = "Mass Vaccination Example",
+          question("What modelled incidence does the vaccine model achieve 1.5 years into the simulation??",
+              answer("5 clinical cases per 1000"),
+              answer("2.5 clinical cases per 1000", correct = TRUE),
+              answer("4 clinical cases per 1000"),
+              answer("2.0 clinical cases per 1000"), correct = 'Correct-- notice how clinical incidence reaches a low during this period.', allow_retry = T)
+     )
+
+```
+
+## Age-based vaccination
+
+Here, we will try an age-based strategy. With an age-based vaccine strategy, vaccines are administered to people at specific ages, rather than to the whole population at once.
+
+```{r age_based, exercise = TRUE}
+
+# set a random seed so results are more comparable between runs
+set.seed(780)
+
+# Establish some model parameters:
+year <- 365
+month <- 30
+sim_length <- 3 * year
+human_population <- 10000
+starting_EIR <- 20
+
+# Establish the malariasimulation parameter list:
+simparams <- get_parameters(list(
+  human_population = human_population,
+  clinical_incidence_rendering_min_ages = 0,
+  clinical_incidence_rendering_max_ages = 5 * year,
+  individual_mosquitoes = FALSE
+  )
+)
+
+# Equilibrate the parameter list to the initial EIR:
+simparams <- set_equilibrium(parameters = simparams, init_EIR = starting_EIR)
+
+# Use the set_pev_epi() function to parameterise and RTS,S EPI strategy simulation:
+rtssepiparams <- set_pev_epi(
+  simparams,
+  profile = rtss_profile, # We will model implementation of the RTSS vaccine.
+  timesteps = 1 * year, # Vaccination will begin at 1 year into the simulation.
+  coverages = 1, # Vaccine coverage is 100%.
+  min_wait = 0, # There is no minimum wait since the last vaccination.
+  age = 5 * month, # Individuals will be vaccinated once they reach 5 months of age.
+  booster_timestep = 12 * month, # The booster is administered 12 months following the third dose. 
+  booster_coverage = 0.95, # 95% of those vaccinated with the primary series will be boosted.
+  booster_profile = list(rtss_booster_profile) # We will model implementation of the RTSS booster.
+)
+
+# Run the no vaccine and RTS'S vaccination strategy simulations:
+no_vaccine_output <- run_simulation(timesteps = sim_length, parameters = simparams)
+vaccine_output <- run_simulation(timesteps = sim_length, parameters = rtssepiparams)
+
+# Add simulation identifier columns to the outputs:
+no_vaccine_output$scenario <- 'no vaccine'
+vaccine_output$scenario <- 'vaccine' 
+
+# Combine the vaccine and no vaccine outputs into a single data frame 
+full_output <- dplyr::bind_rows(no_vaccine_output, vaccine_output)
+full_output$time_year <- full_output$timestep / 365 # calculate time in years
+
+# Calculate incidence in children under 5:
+full_output$clinical_incidence <- 1000 * full_output$n_inc_clinical_0_1825 / full_output$n_0_1825
+
+# calculate parasite prevalence in children aged 2-10:
+full_output$pfpr <- full_output$n_detect_730_3650/full_output$n_730_3650
+
+# Plot the clinical incidence through time:
+full_output |>
+  ggplot(aes(x = time_year, y = n_infections, colour = scenario, fill = scenario)) +
+  geom_line(alpha = 0.4) +
+  geom_smooth(method = 'loess', span= 0.25) +
+  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE) +
+  theme_bw() +
+  scale_color_manual(values= c("#E69F00", "#56B4E9")) +
+  scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
+  labs(x = "Time (years)", 
+       y = expression(paste(italic(Pf),"PR"[2-10])),
+       color= 'Scenario',
+       fill = 'Scenario')
+
+# Plot the prevalence in ages 2-10 through time:
+full_output |>
+  ggplot(aes(x = time_year, y = pfpr, colour = scenario, fill = scenario)) +
+  geom_line(alpha = 0.4) +
+  geom_smooth(method = 'loess', span= 0.25) +
+  geom_vline(xintercept = 1, linetype= 'dotted', alpha = 10, show.legend = TRUE) +
+  theme_bw() +
+  scale_color_manual(values= c("#E69F00", "#56B4E9")) +
+  scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
+  labs(x = "Time (years)", 
+       y = "Clinical incidence (per 1000 children aged 0-5)",
+       color= 'Scenario',
+       fill = 'Scenario')
+
+```
+
+## Implement your age-based vaccination strategy
+
+Use this space to implement a mass vaccination strategy that:
+
+- Vaccinates children beginning at 6 months of age, 1 year into the simulation
+- Includes a booster delivered 12 months after the first three doses
+- Reaches a coverage level of 42% for the first three doses and 25% for the booster dose.
+
+Plot incidence and the doses delivered for this model.
+
+```{r more_space_to_work, exercise = TRUE}
+
+```
+
+<div id="filter-hint">
+**Hint:** Use `set_pev_epi()` and modify the arguments based on the previous exercise.
+</div>
+
+```{r age_based_questions, echo = FALSE}
+quiz(caption = "Age-based  example",
+     question("At what point does parasite prevalence begin to diverge between vaccine and non-vaccine scenario?",
+              answer("3 years in"),
+              answer("0.5 years in"),
+              answer("2 years in", correct = TRUE), allow_retry = T))
+
+```
+
+If you have extra time, run the same scenario without a booster dose, and compare it to model outputs with the booster dose. How does vaccine impact change without this dose?
+
+```{r booster_space, exercise =TRUE}
+
+
+```
+}
