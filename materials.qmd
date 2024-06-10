@@ -16,3 +16,4 @@ Workshop practicals are included as part of the :package: \[malsimtutorial\]. Th
 -   `malsimtutorial::run_tutorial("Introduction")`
 -   `malsimtutorial::run_tutorial("treatment")`
 -   `malsimtutorial::run_tutorial("bednets")`
+-   `malsimtutorial::run_tutorial("vaccines")`
