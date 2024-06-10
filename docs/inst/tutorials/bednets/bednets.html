@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Malariasimulation Workshop - Tutorial</title>
+<title>Malariasimulation Workshop - Bednets</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -149,15 +149,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#topic-1" id="toc-topic-1" class="nav-link active" data-scroll-target="#topic-1">Topic 1</a>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a>
   <ul class="collapse">
-  <li><a href="#exercise" id="toc-exercise" class="nav-link" data-scroll-target="#exercise">Exercise</a></li>
-  <li><a href="#exercise-with-code" id="toc-exercise-with-code" class="nav-link" data-scroll-target="#exercise-with-code">Exercise with Code</a></li>
-  </ul></li>
-  <li><a href="#topic-2" id="toc-topic-2" class="nav-link" data-scroll-target="#topic-2">Topic 2</a>
-  <ul class="collapse">
-  <li><a href="#exercise-with-hint" id="toc-exercise-with-hint" class="nav-link" data-scroll-target="#exercise-with-hint">Exercise with Hint</a></li>
-  <li><a href="#quiz" id="toc-quiz" class="nav-link" data-scroll-target="#quiz">Quiz</a></li>
+  <li><a href="#specifying-a-simple-bed-net-campaign" id="toc-specifying-a-simple-bed-net-campaign" class="nav-link" data-scroll-target="#specifying-a-simple-bed-net-campaign">Specifying a simple bed net campaign</a></li>
+  <li><a href="#specifying-a-campaign-when-simulating-multiple-mosquito-species" id="toc-specifying-a-campaign-when-simulating-multiple-mosquito-species" class="nav-link" data-scroll-target="#specifying-a-campaign-when-simulating-multiple-mosquito-species">Specifying a campaign when simulating multiple mosquito species</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -167,7 +162,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Tutorial</h1>
+<h1 class="title">Bednets</h1>
 </div>
 
 
@@ -184,117 +179,210 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="topic-1" class="level2">
-<h2 class="anchored" data-anchor-id="topic-1">Topic 1</h2>
-<section id="exercise" class="level3">
-<h3 class="anchored" data-anchor-id="exercise">Exercise</h3>
-<p><em>Here’s a simple exercise with an empty code chunk provided for entering the answer.</em></p>
-<p>Write the R code required to add two plus two:</p>
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>Another widely used intervention that can be simulated using <code>malariasimulation</code> is the distribution of insecticide treated bed nets (ITNs/LLINs). <code>malariasimulation</code> allows the users to tune a number of important components of both the bed nets to be distributed (e.g.&nbsp;efficacy, longevity) and the way in which they are distributed (e.g.&nbsp;timing, coverage, and target population). In this tutorial, we will build on what we have learnt so far to learn how to simulate bed net distribution campaigns.</p>
+<p><img src="images/bednet_simulation_workflow.png" class="img-fluid" style="width:100.0%"></p>
+<p>To simulate the distribution of bed nets, there are six steps:</p>
+<ol type="1">
+<li>Load the base set of malariasimulation parameters (<code>get_parameters()</code>)</li>
+<li>Set the vector community (<code>set_species()</code>)</li>
+<li>Specify the bed net parameters (<code>set_bednets()</code>)</li>
+<li>Equilibrate the parameter set to an initial EIR (<code>set_equilibrium()</code>)</li>
+<li>Run the simulation (<code>run_simulation()</code>)</li>
+<li>Process the simulation outputs</li>
+</ol>
+<section id="specifying-a-simple-bed-net-campaign" class="level2">
+<h2 class="anchored" data-anchor-id="specifying-a-simple-bed-net-campaign">Specifying a simple bed net campaign</h2>
+<p>The use of bed nets as an intervention in <code>malariasimulation</code> is specified using the <code>set_bednets()</code> helper function (see ?<code>set_bednets()</code> for the helper file).</p>
+<p>The <code>set_bednets()</code> function requires the user to supply 8 arguments:</p>
+<ol type="1">
+<li><code>parameters</code>: A list of malariasimulation parameters (as generated using <code>get_parameter)</code>.</li>
+<li><code>timesteps</code>: A vector of timesteps on which the user wants to update bed net parameters.</li>
+<li><code>coverages</code>: A vector of coverages, as a proportion of people to receive a bed net, for each timestep .</li>
+<li><code>retention</code>: The average number of days an individual keeps a given net.</li>
+<li><code>dn0</code>: A matrix, where each row is for a mosquito species and each column a timestep, of the average probability a mosquito is killed upon coming in to contact with a net.</li>
+<li><code>rn</code>: A matrix, where each row is for a mosquito species and each column a timestep, of the average probability a mosquito is repelled from feeding by a net.</li>
+<li><code>rnm</code>: A matrix, where each row is for a mosquito species and each column a timestep, of the minimum probability a mosquito is repelled by a net.</li>
+<li><code>gamman</code>: A vector containing the half-life of the insecticidal component of a bed net for each time step.</li>
+</ol>
+<p>Note that the <code>dn0</code>, <code>rn</code>, and <code>rnm</code> arguments require matrices with a column for each timestep a bed net parameter update is scheduled, and a row for each species being simulated. By default, <code>malariasimulation</code> simulates a mosquito population with a single species, <em>An. gambiae</em>, but additional species can be added using <code>set_species()</code> (see Mosquito Species vignette for a tutorial). Similarly, the vector of <code>coverages</code> must have a value for each timestep bed net events are scheduled for (i.e.&nbsp;<code>length(timesteps) == length(coverages)</code>).</p>
+<p>Let’s take a look at a simple example of how to use <code>set_bednets()</code> to simulate bed net distributions when a single species of mosquito is simulated. As the default behaviour for malariasimulation is to simulate a mosquito population composed of only <em>An. gambiae</em>, we do not need to call <code>set_species()</code> in this instance.</p>
 <div class="cell" data-exercise="true">
-<div class="tutorial-exercise" data-label="two-plus-two" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0" data-pipe="|>">
+<div class="tutorial-exercise" data-label="set_bednets_example-1" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0" data-pipe="|>">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the base parameter set:</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>parameters <span class="ot">&lt;-</span> <span class="fu">get_parameters</span>(<span class="at">overrides =</span> <span class="fu">list</span>(<span class="at">human_population =</span> <span class="dv">1000</span>))</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the bed net parameters into the parameter list using set_bednets()</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>parameters <span class="ot">&lt;-</span> <span class="fu">set_bednets</span>(<span class="at">parameters =</span> parameters,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>                          <span class="at">timesteps =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">4</span>) <span class="sc">*</span> <span class="dv">365</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>                          <span class="at">coverages =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.5</span>),</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                          <span class="at">retention =</span> <span class="dv">5</span> <span class="sc">*</span> <span class="dv">365</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                          <span class="at">dn0 =</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="fl">0.533</span>, <span class="fl">0.533</span>), <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">ncol =</span> <span class="dv">1</span>),</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>                          <span class="at">rn =</span>  <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="fl">0.56</span>, <span class="fl">0.56</span>), <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">ncol =</span> <span class="dv">1</span>),</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>                          <span class="at">rnm =</span>  <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="fl">0.24</span>, <span class="fl">0.24</span>), <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">ncol =</span> <span class="dv">1</span>), </span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>                          <span class="at">gamman =</span>  <span class="fu">rep</span>(<span class="fl">2.64</span> <span class="sc">*</span> <span class="dv">365</span>, <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
 </div>
-</section>
-<section id="exercise-with-code" class="level3">
-<h3 class="anchored" data-anchor-id="exercise-with-code">Exercise with Code</h3>
-<p><em>Here’s an exercise with some prepopulated code as well as <code>exercise.lines = 5</code> to provide a bit more initial room to work.</em></p>
-<p>Now write a function that adds any two numbers and then call it:</p>
-<div class="cell" data-exercise="true" data-exercise.lines="5">
-<div class="tutorial-exercise" data-label="add-function" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="5" data-pipe="|>">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>add <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
-</div>
-</div>
-</section>
-</section>
-<section id="topic-2" class="level2">
-<h2 class="anchored" data-anchor-id="topic-2">Topic 2</h2>
-<section id="exercise-with-hint" class="level3">
-<h3 class="anchored" data-anchor-id="exercise-with-hint">Exercise with Hint</h3>
-<p><em>Here’s an exercise where the chunk is pre-evaluated via the <code>exercise.eval</code> option (so the user can see the default output we’d like them to customize). We also add a “hint” to the correct solution via the chunk immediate below labeled <code>print-limit-hint</code>.</em></p>
-<p>Modify the following code to limit the number of rows printed to 5:</p>
-<div class="cell" data-exercise="true" data-exercise.eval="true">
-<div class="tutorial-exercise" data-label="print-limit" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0" data-pipe="|>">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>mtcars</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>                     mpg cyl  disp  hp drat    wt  qsec vs am gear carb
-Mazda RX4           21.0   6 160.0 110 3.90 2.620 16.46  0  1    4    4
-Mazda RX4 Wag       21.0   6 160.0 110 3.90 2.875 17.02  0  1    4    4
-Datsun 710          22.8   4 108.0  93 3.85 2.320 18.61  1  1    4    1
-Hornet 4 Drive      21.4   6 258.0 110 3.08 3.215 19.44  1  0    3    1
-Hornet Sportabout   18.7   8 360.0 175 3.15 3.440 17.02  0  0    3    2
-Valiant             18.1   6 225.0 105 2.76 3.460 20.22  1  0    3    1
-Duster 360          14.3   8 360.0 245 3.21 3.570 15.84  0  0    3    4
-Merc 240D           24.4   4 146.7  62 3.69 3.190 20.00  1  0    4    2
-Merc 230            22.8   4 140.8  95 3.92 3.150 22.90  1  0    4    2
-Merc 280            19.2   6 167.6 123 3.92 3.440 18.30  1  0    4    4
-Merc 280C           17.8   6 167.6 123 3.92 3.440 18.90  1  0    4    4
-Merc 450SE          16.4   8 275.8 180 3.07 4.070 17.40  0  0    3    3
-Merc 450SL          17.3   8 275.8 180 3.07 3.730 17.60  0  0    3    3
-Merc 450SLC         15.2   8 275.8 180 3.07 3.780 18.00  0  0    3    3
-Cadillac Fleetwood  10.4   8 472.0 205 2.93 5.250 17.98  0  0    3    4
-Lincoln Continental 10.4   8 460.0 215 3.00 5.424 17.82  0  0    3    4
-Chrysler Imperial   14.7   8 440.0 230 3.23 5.345 17.42  0  0    3    4
-Fiat 128            32.4   4  78.7  66 4.08 2.200 19.47  1  1    4    1
-Honda Civic         30.4   4  75.7  52 4.93 1.615 18.52  1  1    4    2
-Toyota Corolla      33.9   4  71.1  65 4.22 1.835 19.90  1  1    4    1
-Toyota Corona       21.5   4 120.1  97 3.70 2.465 20.01  1  0    3    1
-Dodge Challenger    15.5   8 318.0 150 2.76 3.520 16.87  0  0    3    2
-AMC Javelin         15.2   8 304.0 150 3.15 3.435 17.30  0  0    3    2
-Camaro Z28          13.3   8 350.0 245 3.73 3.840 15.41  0  0    3    4
-Pontiac Firebird    19.2   8 400.0 175 3.08 3.845 17.05  0  0    3    2
-Fiat X1-9           27.3   4  79.0  66 4.08 1.935 18.90  1  1    4    1
-Porsche 914-2       26.0   4 120.3  91 4.43 2.140 16.70  0  1    5    2
-Lotus Europa        30.4   4  95.1 113 3.77 1.513 16.90  1  1    5    2
-Ford Pantera L      15.8   8 351.0 264 4.22 3.170 14.50  0  1    5    4
-Ferrari Dino        19.7   6 145.0 175 3.62 2.770 15.50  0  1    5    6
-Maserati Bora       15.0   8 301.0 335 3.54 3.570 14.60  0  1    5    8
-Volvo 142E          21.4   4 121.0 109 4.11 2.780 18.60  1  1    4    2</code></pre>
-</div>
-<script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
-</div>
-</div>
-<div class="cell">
-<div class="tutorial-exercise-support" data-label="print-limit-hint" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0" data-pipe="|>">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(mtcars)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</div>
-</section>
-<section id="quiz" class="level3">
-<h3 class="anchored" data-anchor-id="quiz">Quiz</h3>
-<p><em>You can include any number of single or multiple choice questions as a quiz. Use the <code>question</code> function to define a question and the <code>quiz</code> function for grouping multiple questions together.</em></p>
-<p>Some questions to verify that you understand the purposes of various base and recommended R packages:</p>
+<p>Here, we have specified a bed net campaign involving two distribution events, one to occur after 1 year and another after 4 years, which will achieve a coverage of 50%. We are assuming that individuals will, on average, retain a bed net for 5 years (<code>retention</code>), and that each bed net has a half life (<code>gamman</code>) of ~960 days.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="panel-heading tutorial-quiz-title"><span data-i18n="text.quiz">Quiz</span></div>
+<div class="panel-heading tutorial-quiz-title">Parameters Qs</div>
 </div>
 <div class="cell-output-display no-overflow-x">
 <div class="panel panel-default tutorial-question-container">
-<div data-label="quiz-1" class="tutorial-question panel-body">
-<div id="quiz-1-answer_container" class="shiny-html-output"></div>
-<div id="quiz-1-message_container" class="shiny-html-output"></div>
-<div id="quiz-1-action_button_container" class="shiny-html-output"></div>
+<div data-label="quiz-1-1" class="tutorial-question panel-body">
+<div id="quiz-1-1-answer_container" class="shiny-html-output"></div>
+<div id="quiz-1-1-message_container" class="shiny-html-output"></div>
+<div id="quiz-1-1-action_button_container" class="shiny-html-output"></div>
 <script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
 </div>
 </div>
 </div>
 <div class="cell-output-display no-overflow-x">
 <div class="panel panel-default tutorial-question-container">
-<div data-label="quiz-2" class="tutorial-question panel-body">
-<div id="quiz-2-answer_container" class="shiny-html-output"></div>
-<div id="quiz-2-message_container" class="shiny-html-output"></div>
-<div id="quiz-2-action_button_container" class="shiny-html-output"></div>
+<div data-label="quiz-1-2" class="tutorial-question panel-body">
+<div id="quiz-1-2-answer_container" class="shiny-html-output"></div>
+<div id="quiz-1-2-message_container" class="shiny-html-output"></div>
+<div id="quiz-1-2-action_button_container" class="shiny-html-output"></div>
 <script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
 </div>
 </div>
 </div>
 </div>
+<p>Now that we’ve parameterised a bed net campaign, let’s run the simulation! Note that we still include the step to equilibrate the parameters to a given level of transmission (<code>initial_EIR</code>).</p>
+<div class="cell" data-exercise="true">
+<div class="tutorial-exercise" data-label="set_bednets_example" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0" data-pipe="|>">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the base parameter set:</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>parameters <span class="ot">&lt;-</span> <span class="fu">get_parameters</span>(<span class="at">overrides =</span> <span class="fu">list</span>(<span class="at">human_population =</span> <span class="dv">1000</span>))</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the bed net parameters into the parameter list using set_bednets()</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>parameters <span class="ot">&lt;-</span> <span class="fu">set_bednets</span>(<span class="at">parameters =</span> parameters,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                          <span class="at">timesteps =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">4</span>) <span class="sc">*</span> <span class="dv">365</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                          <span class="at">coverages =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.5</span>),</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>                          <span class="at">retention =</span> <span class="dv">5</span> <span class="sc">*</span> <span class="dv">365</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>                          <span class="at">dn0 =</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="fl">0.533</span>, <span class="fl">0.533</span>), <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">ncol =</span> <span class="dv">1</span>),</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                          <span class="at">rn =</span>  <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="fl">0.56</span>, <span class="fl">0.56</span>), <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">ncol =</span> <span class="dv">1</span>),</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                          <span class="at">rnm =</span>  <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="fl">0.24</span>, <span class="fl">0.24</span>), <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">ncol =</span> <span class="dv">1</span>), </span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>                          <span class="at">gamman =</span>  <span class="fu">rep</span>(<span class="fl">2.64</span> <span class="sc">*</span> <span class="dv">365</span>, <span class="dv">2</span>))</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Equilibrate the model parameters to an initial EIR:</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>parameters <span class="ot">&lt;-</span> <span class="fu">set_equilibrium</span>(<span class="at">parameters =</span> parameters, </span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>                              <span class="at">init_EIR =</span> <span class="dv">8</span>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the simulation</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>simulation_output <span class="ot">&lt;-</span> <span class="fu">run_simulation</span>(<span class="at">timesteps =</span> <span class="dv">7</span> <span class="sc">*</span> <span class="dv">365</span>, </span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">parameters =</span> parameters)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the mosquito population through time:</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>simulation_output <span class="sc">|&gt;</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total_mosquito_population =</span> Sm_gamb_count <span class="sc">+</span> Im_gamb_count <span class="sc">+</span> Pm_gamb_count) <span class="sc">|&gt;</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> timestep, <span class="at">y =</span> total_mosquito_population)) <span class="sc">+</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">1.2</span>, <span class="at">colour =</span> <span class="st">"deepskyblue2"</span>) <span class="sc">+</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Time (days)"</span>, <span class="at">y =</span> <span class="st">"Adult Female Mosquito Population Size"</span>) <span class="sc">+</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">7500</span>)) <span class="sc">+</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">c</span>(<span class="dv">365</span>, <span class="dv">1460</span>), <span class="at">linetype =</span> <span class="st">"dashed"</span>)</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the mosquito population through time:</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>simulation_output <span class="sc">|&gt;</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pfpr210 =</span> n_detect_730_3650 <span class="sc">/</span> n_730_3650) <span class="sc">|&gt;</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> timestep, <span class="at">y =</span> pfpr210)) <span class="sc">+</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">1.2</span>, <span class="at">colour =</span> <span class="st">"brown2"</span>) <span class="sc">+</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Time (days)"</span>, <span class="at">y =</span> <span class="st">"Prevalence (2-10)"</span>) <span class="sc">+</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
+</div>
+</div>
+<p>Looking at the plots, we can see that the net distribution events (black dashed lines) cause a rapid decline in the adult female mosquito population size which results in a decline in prevalence. We can also see that the prevalence begins to rebound between the distribution events. Think about why this is occurring. What parameter(s) might affect the rate of this recovery? Using the code chunk above, try re-running the simulation with a different net <code>retention</code> time and see how it affects what we see.</p>
+</section>
+<section id="specifying-a-campaign-when-simulating-multiple-mosquito-species" class="level2">
+<h2 class="anchored" data-anchor-id="specifying-a-campaign-when-simulating-multiple-mosquito-species">Specifying a campaign when simulating multiple mosquito species</h2>
+<p>As mentioned, the default behaviour is for <code>malariasimulation</code> to simulate a single mosquito species, <em>Anopheles gambiae</em>. However, malariasimulation<code>supports the simulation of settings with multiple mosquito species, and has in-built parameter sets for *An. funestus* (</code>fun_params<code>), *An. arabiensis* (</code>arab_params<code>), and *An. stephensi* (</code>steph_params`). In this section, we’ll see how to set up the same bed net campaign we’ve just used, but with two vector species.</p>
+<p>We won’t focus on the parameters in these sets today (although feel free to ask later), but we can view the parameter sets:</p>
+<div class="cell" data-exercise="true">
+<div class="tutorial-exercise" data-label="set_species_demo_1" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0" data-pipe="|>">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View the parameter set for An. funestus:</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>fun_params</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># ... and view the associated helper files:</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>?fun_params</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
+</div>
+</div>
+<p>The <code>set_species()</code> function is used to load the mosquito species parameters of interest into our list of <code>malariasimulation</code> parameters. The <code>set_species()</code> function has three arguments:</p>
+<ol type="1">
+<li><code>parameters</code>: A list of malariasimulation parameters (as established using <code>get_parameters()</code>)</li>
+<li><code>species</code>: A list containing the mosquito species parameters</li>
+<li><code>proportions</code>: The proportion of the total mosquito species represented by each species in <code>species</code> (must therefore sum to 1)</li>
+</ol>
+<p>Below is an example of how to use <code>set_species()</code> to specify a simulation with two species, <em>An. gambiae</em> and <em>An. stephensi</em>. Note that, as with <code>set_drugs()</code>, the mosquito species must be passed to the function as a list:</p>
+<div class="cell" data-exercise="true">
+<div class="tutorial-exercise" data-label="set_species_demo_2" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0" data-pipe="|>">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the base parameter set:</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>parameters <span class="ot">&lt;-</span> <span class="fu">get_parameters</span>(<span class="at">overrides =</span> <span class="fu">list</span>(<span class="at">human_population =</span> <span class="dv">1000</span>))</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the parameters for the mosquito species</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>parameters <span class="ot">&lt;-</span> <span class="fu">set_species</span>(<span class="at">parameters =</span> parameters,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                          <span class="at">species =</span> <span class="fu">list</span>(gamb_params, steph_params),</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                          <span class="at">proportions =</span> <span class="fu">c</span>(<span class="fl">0.7</span>,<span class="fl">0.3</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
+</div>
+</div>
+<p>Now that we’ve seen how to parameterise the model for multiple vector species, let’s add a bed net campaign and run the simulation. Remember, as we’re simulating multiple vector species, the matrix inputs for the <code>dn0</code>, <code>rn</code>, and <code>rnm</code> parameters will need rows for each species!</p>
+<div class="cell" data-exercise="true">
+<div class="tutorial-exercise" data-label="set_species_demo_3" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0" data-pipe="|>">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the base parameter set:</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>parameters <span class="ot">&lt;-</span> <span class="fu">get_parameters</span>(<span class="at">overrides =</span> <span class="fu">list</span>(<span class="at">human_population =</span> <span class="dv">1000</span>))</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the parameters for the mosquito species</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>parameters <span class="ot">&lt;-</span> <span class="fu">set_species</span>(<span class="at">parameters =</span> parameters,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                          <span class="at">species =</span> <span class="fu">list</span>(gamb_params, steph_params),</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>                          <span class="at">proportions =</span> <span class="fu">c</span>(<span class="fl">0.7</span>,<span class="fl">0.3</span>))</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Specify a bed net campaign</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>parameters <span class="ot">&lt;-</span> <span class="fu">set_bednets</span>(<span class="at">parameters =</span> parameters,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>                          <span class="at">timesteps =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">4</span>) <span class="sc">*</span> <span class="dv">365</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>                          <span class="at">coverages =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.5</span>),</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>                          <span class="at">retention =</span> <span class="dv">5</span> <span class="sc">*</span> <span class="dv">365</span>,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>                          <span class="at">dn0 =</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="fl">0.533</span>, <span class="fl">0.533</span>, <span class="fl">0.533</span>, <span class="fl">0.533</span>), <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">ncol =</span> <span class="dv">2</span>),</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>                          <span class="at">rn =</span>  <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="fl">0.56</span>, <span class="fl">0.56</span>, <span class="fl">0.56</span>, <span class="fl">0.56</span>), <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">ncol =</span> <span class="dv">2</span>),</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>                          <span class="at">rnm =</span>  <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="fl">0.24</span>, <span class="fl">0.24</span>, <span class="fl">0.24</span>, <span class="fl">0.24</span>), <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">ncol =</span> <span class="dv">2</span>), </span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>                          <span class="at">gamman =</span>  <span class="fu">rep</span>(<span class="fl">2.64</span> <span class="sc">*</span> <span class="dv">365</span>, <span class="dv">2</span>))</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Equilibrate the model parameters:</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>parameters <span class="ot">&lt;-</span> <span class="fu">set_equilibrium</span>(<span class="at">parameters =</span> parameters, <span class="at">init_EIR =</span> <span class="dv">8</span>)</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the simulation:</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>simulation_output <span class="ot">&lt;-</span> <span class="fu">run_simulation</span>(<span class="at">timesteps =</span> <span class="dv">7</span> <span class="sc">*</span> <span class="dv">365</span>, </span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">parameters =</span> parameters)</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the mosquito population through time:</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>simulation_output <span class="sc">|&gt;</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">gamb_total =</span> Sm_gamb_count <span class="sc">+</span> Im_gamb_count <span class="sc">+</span> Pm_gamb_count,</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>         <span class="at">steph_total =</span> Sm_steph_count <span class="sc">+</span> Im_steph_count <span class="sc">+</span> Pm_steph_count) <span class="sc">|&gt;</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(timestep, gamb_total, steph_total) <span class="sc">|&gt;</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(gamb_total, steph_total), <span class="at">names_to =</span> <span class="st">"Species"</span>, <span class="at">values_to =</span> <span class="st">"Count"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> timestep, <span class="at">y =</span> Count, <span class="at">colour =</span> Species)) <span class="sc">+</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Time (days)"</span>, <span class="at">y =</span> <span class="st">"Number of Adult Female Mosquitoes"</span>) <span class="sc">+</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">7500</span>)) <span class="sc">+</span></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">c</span>(<span class="dv">365</span>, <span class="dv">1460</span>), <span class="at">linetype =</span> <span class="st">"dashed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
+</div>
+</div>
+<p>We have plotted the number of adult mosquitoes of each species through time. What do you notice about the effect of the bed net distributions on the <em>An. gambiae</em> and <em>An. stephensi</em>? Does the information in <code>?gamb_params</code> and/or <code>?steph_params</code> provide any clues?</p>
 <p>
 <script type="application/shiny-prerendered" data-context="server-start">
 library(learnr)
+library(malariasimulation)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
 knitr::opts_chunk$set(echo = FALSE)
 </script>
  
@@ -317,26 +405,28 @@ session$onSessionEnded(function() {
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
-`tutorial-exercise-two-plus-two-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-two-plus-two-code-editor`)), session)
-output$`tutorial-exercise-two-plus-two-output` <- renderUI({
-  `tutorial-exercise-two-plus-two-result`()
+`tutorial-exercise-set_bednets_example-1-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-set_bednets_example-1-code-editor`)), session)
+output$`tutorial-exercise-set_bednets_example-1-output` <- renderUI({
+  `tutorial-exercise-set_bednets_example-1-result`()
 })
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "two-plus-two", global_setup = structure(c("library(learnr)", 
-"knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(label = "setup", 
-    include = FALSE)), setup = NULL, chunks = list(list(label = "two-plus-two", 
-    code = "", opts = list(label = "\"two-plus-two\"", exercise = "TRUE"), 
-    engine = "r")), code_check = NULL, error_check = NULL, check = NULL, 
-    solution = NULL, tests = NULL, options = list(eval = FALSE, 
-        echo = TRUE, results = "markup", tidy = FALSE, tidy.opts = NULL, 
-        collapse = FALSE, prompt = FALSE, comment = NA, highlight = FALSE, 
-        size = "normalsize", background = "#F7F7F7", strip.white = TRUE, 
-        cache = 0, cache.path = "bednets_cache/html/", cache.vars = NULL, 
-        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
-        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
-        fig.align = "default", fig.path = "bednets_files/figure-html/", 
+learnr:::store_exercise_cache(structure(list(label = "set_bednets_example-1", global_setup = structure(c("library(learnr)", 
+"library(malariasimulation)", "library(dplyr)", "library(tidyr)", 
+"library(ggplot2)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
+    label = "setup", include = FALSE)), setup = NULL, chunks = list(
+    list(label = "set_bednets_example-1", code = "\n# Load the base parameter set:\nparameters <- get_parameters(overrides = list(human_population = 1000))\n\n# Load the bed net parameters into the parameter list using set_bednets()\nparameters <- set_bednets(parameters = parameters,\n                          timesteps = c(1, 4) * 365,\n                          coverages = c(0.5, 0.5),\n                          retention = 5 * 365,\n                          dn0 = matrix(c(0.533, 0.533), nrow = 2, ncol = 1),\n                          rn =  matrix(c(0.56, 0.56), nrow = 2, ncol = 1),\n                          rnm =  matrix(c(0.24, 0.24), nrow = 2, ncol = 1), \n                          gamman =  rep(2.64 * 365, 2))\n", 
+        opts = list(label = "\"set_bednets_example-1\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "bednets_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "bednets_files/figure-html/", 
         dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
         fig.width = 7L, fig.height = 5L, fig.env = "figure", 
         fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
@@ -346,107 +436,36 @@ learnr:::store_exercise_cache(structure(list(label = "two-plus-two", global_setu
         message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
         engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
         fig.asp = NULL, fenced.echo = FALSE, ft.shadow = FALSE, 
-        label = "two-plus-two", exercise = TRUE, original.params.src = "r two-plus-two, exercise=TRUE", 
-        chunk.echo = FALSE, code = "", out.width.px = 672L, out.height.px = 480L, 
-        params.src = "r two-plus-two, exercise=TRUE", fig.num = 0L, 
-        exercise.df_print = "default", exercise.checker = "NULL"), 
-    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
-)))
-</script>
- 
-<script type="application/shiny-prerendered" data-context="server">
-`tutorial-exercise-add-function-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-add-function-code-editor`)), session)
-output$`tutorial-exercise-add-function-output` <- renderUI({
-  `tutorial-exercise-add-function-result`()
-})
-</script>
- 
-<script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "add-function", global_setup = structure(c("library(learnr)", 
-"knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(label = "setup", 
-    include = FALSE)), setup = NULL, chunks = list(list(label = "add-function", 
-    code = "add <- function() {\n  \n}", opts = list(label = "\"add-function\"", 
-        exercise = "TRUE", exercise.lines = "5"), engine = "r")), 
-    code_check = NULL, error_check = NULL, check = NULL, solution = NULL, 
-    tests = NULL, options = list(eval = FALSE, echo = TRUE, results = "markup", 
-        tidy = FALSE, tidy.opts = NULL, collapse = FALSE, prompt = FALSE, 
-        comment = NA, highlight = FALSE, size = "normalsize", 
-        background = "#F7F7F7", strip.white = TRUE, cache = 0, 
-        cache.path = "bednets_cache/html/", cache.vars = NULL, 
-        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
-        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
-        fig.align = "default", fig.path = "bednets_files/figure-html/", 
-        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
-        fig.width = 7L, fig.height = 5L, fig.env = "figure", 
-        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
-        fig.pos = "", out.width = 672L, out.height = NULL, out.extra = NULL, 
-        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
-        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
-        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
-        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
-        fig.asp = NULL, fenced.echo = FALSE, ft.shadow = FALSE, 
-        label = "add-function", exercise = TRUE, exercise.lines = 5, 
-        original.params.src = "r add-function, exercise=TRUE, exercise.lines = 5", 
-        chunk.echo = FALSE, code = c("add <- function() {", "  ", 
-        "}"), out.width.px = 672L, out.height.px = 480L, params.src = "r add-function, exercise=TRUE, exercise.lines = 5", 
+        label = "set_bednets_example-1", exercise = TRUE, original.params.src = "r set_bednets_example-1, exercise = TRUE", 
+        chunk.echo = FALSE, code = c("", "# Load the base parameter set:", 
+        "parameters <- get_parameters(overrides = list(human_population = 1000))", 
+        "", "# Load the bed net parameters into the parameter list using set_bednets()", 
+        "parameters <- set_bednets(parameters = parameters,", 
+        "                          timesteps = c(1, 4) * 365,", 
+        "                          coverages = c(0.5, 0.5),", 
+        "                          retention = 5 * 365,", "                          dn0 = matrix(c(0.533, 0.533), nrow = 2, ncol = 1),", 
+        "                          rn =  matrix(c(0.56, 0.56), nrow = 2, ncol = 1),", 
+        "                          rnm =  matrix(c(0.24, 0.24), nrow = 2, ncol = 1), ", 
+        "                          gamman =  rep(2.64 * 365, 2))", 
+        ""), out.width.px = 672L, out.height.px = 480L, params.src = "r set_bednets_example-1, exercise = TRUE", 
         fig.num = 0, exercise.df_print = "default", exercise.checker = "NULL"), 
     engine = "r", version = "4"), class = c("r", "tutorial_exercise"
 )))
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
-`tutorial-exercise-print-limit-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-print-limit-code-editor`)), session)
-output$`tutorial-exercise-print-limit-output` <- renderUI({
-  `tutorial-exercise-print-limit-result`()
-})
-</script>
- 
-<script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "print-limit", global_setup = structure(c("library(learnr)", 
-"knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(label = "setup", 
-    include = FALSE)), setup = NULL, chunks = list(list(label = "print-limit", 
-    code = "mtcars", opts = list(label = "\"print-limit\"", exercise = "TRUE", 
-        exercise.eval = "TRUE"), engine = "r")), code_check = NULL, 
-    error_check = NULL, check = NULL, solution = NULL, tests = NULL, 
-    options = list(eval = TRUE, echo = TRUE, results = "markup", 
-        tidy = FALSE, tidy.opts = NULL, collapse = FALSE, prompt = FALSE, 
-        comment = NA, highlight = FALSE, size = "normalsize", 
-        background = "#F7F7F7", strip.white = TRUE, cache = 0, 
-        cache.path = "bednets_cache/html/", cache.vars = NULL, 
-        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
-        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
-        fig.align = "default", fig.path = "bednets_files/figure-html/", 
-        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
-        fig.width = 7L, fig.height = 5L, fig.env = "figure", 
-        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
-        fig.pos = "", out.width = 672L, out.height = NULL, out.extra = NULL, 
-        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
-        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
-        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
-        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
-        fig.asp = NULL, fenced.echo = FALSE, ft.shadow = FALSE, 
-        label = "print-limit", exercise = TRUE, exercise.eval = TRUE, 
-        original.params.src = "r print-limit, exercise=TRUE, exercise.eval=TRUE", 
-        chunk.echo = FALSE, code = "mtcars", out.width.px = 672L, 
-        out.height.px = 480L, params.src = "r print-limit, exercise=TRUE, exercise.eval=TRUE", 
-        fig.alt = NULL, fig.num = 0, exercise.df_print = "default", 
-        exercise.checker = "NULL"), engine = "r", version = "4"), class = c("r", 
-"tutorial_exercise")))
-</script>
- 
-<script type="application/shiny-prerendered" data-context="server">
-learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz-1", question = structure("Which package contains functions for installing other R packages?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_8fa0c68", 
-    option = "base", value = "base", label = structure("base", html = TRUE, class = c("html", 
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz-1-1", question = structure("What mosquito death rate (dn0) have we specified in the chunk above?", html = TRUE, class = c("html", 
+"character")), answers = list(structure(list(id = "lnr_ans_630c81d", 
+    option = "365", value = "365", label = structure("365", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_8fffa94", 
-    option = "tools", value = "tools", label = structure("tools", html = TRUE, class = c("html", 
-    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_d0572db", 
-    option = "utils", value = "utils", label = structure("utils", html = TRUE, class = c("html", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_bb3ff48", 
+    option = "0.533", value = "0.533", label = structure("0.533", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_e406876", 
-    option = "codetools", value = "codetools", label = structure("codetools", html = TRUE, class = c("html", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_82311e1", 
+    option = "0.24", value = "0.24", label = structure("0.24", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_f79bb08", 
+    option = "0", value = "0", label = structure("0", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
 "character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
@@ -454,36 +473,252 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), try_again = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
-    answer = "quiz-1-answer", question = "quiz-1"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = FALSE, seed = 110435417.448574, 
+    answer = "quiz-1-1-answer", question = "quiz-1-1"), loading = NULL, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 609244557.216298, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
-learnr:::question_prerendered_chunk(structure(list(type = "learnr_checkbox", label = "quiz-2", question = structure("Which of the R packages listed below are used to create plots?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_fec83ac", 
-    option = "lattice", value = "lattice", label = structure("lattice", html = TRUE, class = c("html", 
-    "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_fe517b1", 
-    option = "tools", value = "tools", label = structure("tools", html = TRUE, class = c("html", 
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz-1-2", question = structure("How many columns must the matrix inputs for dn0, rn, and rnm contain if we specify bed net events to be updated 5 times (i.e. we want parameters to be updated on 5 timesteps)?", html = TRUE, class = c("html", 
+"character")), answers = list(structure(list(id = "lnr_ans_30369a8", 
+    option = "3", value = "3", label = structure("3", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_aaf439b", 
-    option = "stats", value = "stats", label = structure("stats", html = TRUE, class = c("html", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_1a89a72", 
+    option = "It depends on the number of mosquito species", 
+    value = "It depends on the number of mosquito species", label = structure("It depends on the number of mosquito species", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_d1ffc39", 
-    option = "grid", value = "grid", label = structure("grid", html = TRUE, class = c("html", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_dde3c2a", 
+    option = "1", value = "1", label = structure("1", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_1ca5a42", 
+    option = "5", value = "5", label = structure("5", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
 "character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
 "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
-"character")), try_again = structure("Incorrect. Be sure to select every correct answer.", html = TRUE, class = c("html", 
+"character")), try_again = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
-    answer = "quiz-2-answer", question = "quiz-2"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = FALSE, seed = 390877798.817983, 
-    options = list()), class = c("learnr_checkbox", "tutorial_question"
+    answer = "quiz-1-2-answer", question = "quiz-1-2"), loading = NULL, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 1651261025.73107, 
+    options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-set_bednets_example-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-set_bednets_example-code-editor`)), session)
+output$`tutorial-exercise-set_bednets_example-output` <- renderUI({
+  `tutorial-exercise-set_bednets_example-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::store_exercise_cache(structure(list(label = "set_bednets_example", global_setup = structure(c("library(learnr)", 
+"library(malariasimulation)", "library(dplyr)", "library(tidyr)", 
+"library(ggplot2)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
+    label = "setup", include = FALSE)), setup = NULL, chunks = list(
+    list(label = "set_bednets_example", code = "\n# Load the base parameter set:\nparameters <- get_parameters(overrides = list(human_population = 1000))\n\n# Load the bed net parameters into the parameter list using set_bednets()\nparameters <- set_bednets(parameters = parameters,\n                          timesteps = c(1, 4) * 365,\n                          coverages = c(0.5, 0.5),\n                          retention = 5 * 365,\n                          dn0 = matrix(c(0.533, 0.533), nrow = 2, ncol = 1),\n                          rn =  matrix(c(0.56, 0.56), nrow = 2, ncol = 1),\n                          rnm =  matrix(c(0.24, 0.24), nrow = 2, ncol = 1), \n                          gamman =  rep(2.64 * 365, 2))\n\n# Equilibrate the model parameters to an initial EIR:\nparameters <- set_equilibrium(parameters = parameters, \n                              init_EIR = 8)\n\n# Run the simulation\nsimulation_output <- run_simulation(timesteps = 7 * 365, \n                                    parameters = parameters)\n\n# Plot the mosquito population through time:\nsimulation_output |>\n  mutate(total_mosquito_population = Sm_gamb_count + Im_gamb_count + Pm_gamb_count) |>\n  ggplot(aes(x = timestep, y = total_mosquito_population)) +\n  geom_line(linewidth = 1.2, colour = \"deepskyblue2\") +\n  theme_bw() +\n  labs(x = \"Time (days)\", y = \"Adult Female Mosquito Population Size\") +\n  scale_y_continuous(limits = c(0, 7500)) +\n  geom_vline(xintercept = c(365, 1460), linetype = \"dashed\")\n\n# Plot the mosquito population through time:\nsimulation_output |>\n  mutate(pfpr210 = n_detect_730_3650 / n_730_3650) |>\n  ggplot(aes(x = timestep, y = pfpr210)) +\n  geom_line(linewidth = 1.2, colour = \"brown2\") +\n  theme_bw() +\n  labs(x = \"Time (days)\", y = \"Prevalence (2-10)\") +\n  scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +\n  scale_x_continuous(expand = c(0, 0))\n", 
+        opts = list(label = "\"set_bednets_example\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "bednets_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "bednets_files/figure-html/", 
+        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
+        fig.width = 7L, fig.height = 5L, fig.env = "figure", 
+        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
+        fig.pos = "", out.width = 672L, out.height = NULL, out.extra = NULL, 
+        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
+        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
+        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
+        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
+        fig.asp = NULL, fenced.echo = FALSE, ft.shadow = FALSE, 
+        label = "set_bednets_example", exercise = TRUE, original.params.src = "r set_bednets_example, exercise = TRUE", 
+        chunk.echo = FALSE, code = c("", "# Load the base parameter set:", 
+        "parameters <- get_parameters(overrides = list(human_population = 1000))", 
+        "", "# Load the bed net parameters into the parameter list using set_bednets()", 
+        "parameters <- set_bednets(parameters = parameters,", 
+        "                          timesteps = c(1, 4) * 365,", 
+        "                          coverages = c(0.5, 0.5),", 
+        "                          retention = 5 * 365,", "                          dn0 = matrix(c(0.533, 0.533), nrow = 2, ncol = 1),", 
+        "                          rn =  matrix(c(0.56, 0.56), nrow = 2, ncol = 1),", 
+        "                          rnm =  matrix(c(0.24, 0.24), nrow = 2, ncol = 1), ", 
+        "                          gamman =  rep(2.64 * 365, 2))", 
+        "", "# Equilibrate the model parameters to an initial EIR:", 
+        "parameters <- set_equilibrium(parameters = parameters, ", 
+        "                              init_EIR = 8)", "", "# Run the simulation", 
+        "simulation_output <- run_simulation(timesteps = 7 * 365, ", 
+        "                                    parameters = parameters)", 
+        "", "# Plot the mosquito population through time:", "simulation_output |>", 
+        "  mutate(total_mosquito_population = Sm_gamb_count + Im_gamb_count + Pm_gamb_count) |>", 
+        "  ggplot(aes(x = timestep, y = total_mosquito_population)) +", 
+        "  geom_line(linewidth = 1.2, colour = \"deepskyblue2\") +", 
+        "  theme_bw() +", "  labs(x = \"Time (days)\", y = \"Adult Female Mosquito Population Size\") +", 
+        "  scale_y_continuous(limits = c(0, 7500)) +", "  geom_vline(xintercept = c(365, 1460), linetype = \"dashed\")", 
+        "", "# Plot the mosquito population through time:", "simulation_output |>", 
+        "  mutate(pfpr210 = n_detect_730_3650 / n_730_3650) |>", 
+        "  ggplot(aes(x = timestep, y = pfpr210)) +", "  geom_line(linewidth = 1.2, colour = \"brown2\") +", 
+        "  theme_bw() +", "  labs(x = \"Time (days)\", y = \"Prevalence (2-10)\") +", 
+        "  scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +", 
+        "  scale_x_continuous(expand = c(0, 0))", ""), out.width.px = 672L, 
+        out.height.px = 480L, params.src = "r set_bednets_example, exercise = TRUE", 
+        fig.num = 0, exercise.df_print = "default", exercise.checker = "NULL"), 
+    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
+)))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-set_species_demo_1-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-set_species_demo_1-code-editor`)), session)
+output$`tutorial-exercise-set_species_demo_1-output` <- renderUI({
+  `tutorial-exercise-set_species_demo_1-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::store_exercise_cache(structure(list(label = "set_species_demo_1", global_setup = structure(c("library(learnr)", 
+"library(malariasimulation)", "library(dplyr)", "library(tidyr)", 
+"library(ggplot2)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
+    label = "setup", include = FALSE)), setup = NULL, chunks = list(
+    list(label = "set_species_demo_1", code = "\n# View the parameter set for An. funestus:\nfun_params\n\n# ... and view the associated helper files:\n?fun_params\n", 
+        opts = list(label = "\"set_species_demo_1\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "bednets_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "bednets_files/figure-html/", 
+        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
+        fig.width = 7L, fig.height = 5L, fig.env = "figure", 
+        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
+        fig.pos = "", out.width = 672L, out.height = NULL, out.extra = NULL, 
+        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
+        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
+        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
+        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
+        fig.asp = NULL, fenced.echo = FALSE, ft.shadow = FALSE, 
+        label = "set_species_demo_1", exercise = TRUE, original.params.src = "r set_species_demo_1, exercise = TRUE", 
+        chunk.echo = FALSE, code = c("", "# View the parameter set for An. funestus:", 
+        "fun_params", "", "# ... and view the associated helper files:", 
+        "?fun_params", ""), out.width.px = 672L, out.height.px = 480L, 
+        params.src = "r set_species_demo_1, exercise = TRUE", 
+        fig.num = 0, exercise.df_print = "default", exercise.checker = "NULL"), 
+    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
+)))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-set_species_demo_2-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-set_species_demo_2-code-editor`)), session)
+output$`tutorial-exercise-set_species_demo_2-output` <- renderUI({
+  `tutorial-exercise-set_species_demo_2-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::store_exercise_cache(structure(list(label = "set_species_demo_2", global_setup = structure(c("library(learnr)", 
+"library(malariasimulation)", "library(dplyr)", "library(tidyr)", 
+"library(ggplot2)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
+    label = "setup", include = FALSE)), setup = NULL, chunks = list(
+    list(label = "set_species_demo_2", code = "\n# Load the base parameter set:\nparameters <- get_parameters(overrides = list(human_population = 1000))\n\n# Load the parameters for the mosquito species\nparameters <- set_species(parameters = parameters,\n                          species = list(gamb_params, steph_params),\n                          proportions = c(0.7,0.3))\n", 
+        opts = list(label = "\"set_species_demo_2\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "bednets_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "bednets_files/figure-html/", 
+        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
+        fig.width = 7L, fig.height = 5L, fig.env = "figure", 
+        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
+        fig.pos = "", out.width = 672L, out.height = NULL, out.extra = NULL, 
+        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
+        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
+        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
+        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
+        fig.asp = NULL, fenced.echo = FALSE, ft.shadow = FALSE, 
+        label = "set_species_demo_2", exercise = TRUE, original.params.src = "r set_species_demo_2, exercise = TRUE", 
+        chunk.echo = FALSE, code = c("", "# Load the base parameter set:", 
+        "parameters <- get_parameters(overrides = list(human_population = 1000))", 
+        "", "# Load the parameters for the mosquito species", 
+        "parameters <- set_species(parameters = parameters,", 
+        "                          species = list(gamb_params, steph_params),", 
+        "                          proportions = c(0.7,0.3))", 
+        ""), out.width.px = 672L, out.height.px = 480L, params.src = "r set_species_demo_2, exercise = TRUE", 
+        fig.num = 0, exercise.df_print = "default", exercise.checker = "NULL"), 
+    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
+)))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-set_species_demo_3-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-set_species_demo_3-code-editor`)), session)
+output$`tutorial-exercise-set_species_demo_3-output` <- renderUI({
+  `tutorial-exercise-set_species_demo_3-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::store_exercise_cache(structure(list(label = "set_species_demo_3", global_setup = structure(c("library(learnr)", 
+"library(malariasimulation)", "library(dplyr)", "library(tidyr)", 
+"library(ggplot2)", "knitr::opts_chunk$set(echo = FALSE)"), chunk_opts = list(
+    label = "setup", include = FALSE)), setup = NULL, chunks = list(
+    list(label = "set_species_demo_3", code = "\n# Load the base parameter set:\nparameters <- get_parameters(overrides = list(human_population = 1000))\n\n# Load the parameters for the mosquito species\nparameters <- set_species(parameters = parameters,\n                          species = list(gamb_params, steph_params),\n                          proportions = c(0.7,0.3))\n\n# Specify a bed net campaign\nparameters <- set_bednets(parameters = parameters,\n                          timesteps = c(1, 4) * 365,\n                          coverages = c(0.5, 0.5),\n                          retention = 5 * 365,\n                          dn0 = matrix(c(0.533, 0.533, 0.533, 0.533), nrow = 2, ncol = 2),\n                          rn =  matrix(c(0.56, 0.56, 0.56, 0.56), nrow = 2, ncol = 2),\n                          rnm =  matrix(c(0.24, 0.24, 0.24, 0.24), nrow = 2, ncol = 2), \n                          gamman =  rep(2.64 * 365, 2))\n\n# Equilibrate the model parameters:\nparameters <- set_equilibrium(parameters = parameters, init_EIR = 8)\n\n# Run the simulation:\nsimulation_output <- run_simulation(timesteps = 7 * 365, \n                                    parameters = parameters)\n\n# Plot the mosquito population through time:\nsimulation_output |>\n  mutate(gamb_total = Sm_gamb_count + Im_gamb_count + Pm_gamb_count,\n         steph_total = Sm_steph_count + Im_steph_count + Pm_steph_count) |>\n  select(timestep, gamb_total, steph_total) |>\n  pivot_longer(cols = c(gamb_total, steph_total), names_to = \"Species\", values_to = \"Count\") |>\n  ggplot(aes(x = timestep, y = Count, colour = Species)) +\n  geom_line(linewidth = 1.2) +\n  theme_bw() +\n  labs(x = \"Time (days)\", y = \"Number of Adult Female Mosquitoes\") +\n  scale_y_continuous(limits = c(0, 7500)) +\n  geom_vline(xintercept = c(365, 1460), linetype = \"dashed\")\n", 
+        opts = list(label = "\"set_species_demo_3\"", exercise = "TRUE"), 
+        engine = "r")), code_check = NULL, error_check = NULL, 
+    check = NULL, solution = NULL, tests = NULL, options = list(
+        eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
+        tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
+        highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
+        strip.white = TRUE, cache = 0, cache.path = "bednets_cache/html/", 
+        cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
+        autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
+        fig.show = "asis", fig.align = "default", fig.path = "bednets_files/figure-html/", 
+        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
+        fig.width = 7L, fig.height = 5L, fig.env = "figure", 
+        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
+        fig.pos = "", out.width = 672L, out.height = NULL, out.extra = NULL, 
+        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
+        aniopts = "controls,loop", warning = TRUE, error = FALSE, 
+        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
+        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
+        fig.asp = NULL, fenced.echo = FALSE, ft.shadow = FALSE, 
+        label = "set_species_demo_3", exercise = TRUE, original.params.src = "r set_species_demo_3, exercise = TRUE", 
+        chunk.echo = FALSE, code = c("", "# Load the base parameter set:", 
+        "parameters <- get_parameters(overrides = list(human_population = 1000))", 
+        "", "# Load the parameters for the mosquito species", 
+        "parameters <- set_species(parameters = parameters,", 
+        "                          species = list(gamb_params, steph_params),", 
+        "                          proportions = c(0.7,0.3))", 
+        "", "# Specify a bed net campaign", "parameters <- set_bednets(parameters = parameters,", 
+        "                          timesteps = c(1, 4) * 365,", 
+        "                          coverages = c(0.5, 0.5),", 
+        "                          retention = 5 * 365,", "                          dn0 = matrix(c(0.533, 0.533, 0.533, 0.533), nrow = 2, ncol = 2),", 
+        "                          rn =  matrix(c(0.56, 0.56, 0.56, 0.56), nrow = 2, ncol = 2),", 
+        "                          rnm =  matrix(c(0.24, 0.24, 0.24, 0.24), nrow = 2, ncol = 2), ", 
+        "                          gamman =  rep(2.64 * 365, 2))", 
+        "", "# Equilibrate the model parameters:", "parameters <- set_equilibrium(parameters = parameters, init_EIR = 8)", 
+        "", "# Run the simulation:", "simulation_output <- run_simulation(timesteps = 7 * 365, ", 
+        "                                    parameters = parameters)", 
+        "", "# Plot the mosquito population through time:", "simulation_output |>", 
+        "  mutate(gamb_total = Sm_gamb_count + Im_gamb_count + Pm_gamb_count,", 
+        "         steph_total = Sm_steph_count + Im_steph_count + Pm_steph_count) |>", 
+        "  select(timestep, gamb_total, steph_total) |>", "  pivot_longer(cols = c(gamb_total, steph_total), names_to = \"Species\", values_to = \"Count\") |>", 
+        "  ggplot(aes(x = timestep, y = Count, colour = Species)) +", 
+        "  geom_line(linewidth = 1.2) +", "  theme_bw() +", "  labs(x = \"Time (days)\", y = \"Number of Adult Female Mosquitoes\") +", 
+        "  scale_y_continuous(limits = c(0, 7500)) +", "  geom_vline(xintercept = c(365, 1460), linetype = \"dashed\")", 
+        ""), out.width.px = 672L, out.height.px = 480L, params.src = "r set_species_demo_3, exercise = TRUE", 
+        fig.num = 0, exercise.df_print = "default", exercise.checker = "NULL"), 
+    engine = "r", version = "4"), class = c("r", "tutorial_exercise"
+)))
 </script>
  
 <script type="application/shiny-prerendered" data-context="server-extras">
@@ -515,12 +750,12 @@ ojs_define <- function(..., .session = shiny::getDefaultReactiveDomain()) {
 </p>
 <!--html_preserve-->
 <script type="application/shiny-prerendered" data-context="dependencies">
-{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["3.6.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/3.6.0"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery-3.6.0.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquerylib"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.1.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["font-awesome"]},{"type":"character","attributes":{},"value":["6.4.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["fontawesome"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/all.min.css","css/v4-shims.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["fontawesome"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.5.2"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootbox"]},{"type":"character","attributes":{},"value":["5.5.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/bootbox"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["bootbox.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["idb-keyvalue"]},{"type":"character","attributes":{},"value":["3.2.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/idb-keyval"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["idb-keyval-iife-compat.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[false]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial"]},{"type":"character","attributes":{},"value":["0.11.5"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial.js"]},{"type":"character","attributes":{},"value":["tutorial.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["2.0.10"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["2.0.10"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["2.0.10"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]}]}
+{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["3.6.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/3.6.0"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery-3.6.0.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquerylib"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.1.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["font-awesome"]},{"type":"character","attributes":{},"value":["6.4.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["fontawesome"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/all.min.css","css/v4-shims.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["fontawesome"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.5.2"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootbox"]},{"type":"character","attributes":{},"value":["5.5.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/bootbox"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["bootbox.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["idb-keyvalue"]},{"type":"character","attributes":{},"value":["3.2.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/idb-keyval"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["idb-keyval-iife-compat.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[false]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial"]},{"type":"character","attributes":{},"value":["0.11.5"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial.js"]},{"type":"character","attributes":{},"value":["tutorial.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["2.0.10"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["2.0.10"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["2.0.10"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["2.0.10"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["2.0.10"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.5"]}]}]}
 </script>
 <!--/html_preserve-->
 <!--html_preserve-->
 <script type="application/shiny-prerendered" data-context="execution_dependencies">
-{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]}},"value":[{"type":"character","attributes":{},"value":["backports","base","checkmate","cli","commonmark","compiler","datasets","digest","ellipsis","evaluate","fastmap","fontawesome","graphics","grDevices","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","later","learnr","lifecycle","magrittr","markdown","methods","mime","promises","R6","Rcpp","rlang","rmarkdown","rprojroot","rstudioapi","shiny","stats","tools","utils","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["1.4.1","4.3.0","2.3.1","3.6.2","1.9.1","4.3.0","4.3.0","0.6.35","0.3.2","0.23","1.1.1","0.5.2","4.3.0","4.3.0","0.5.8.1","1.6.4","1.6.15","0.1.4","1.8.8","1.46","1.3.2","0.11.5","1.0.4","2.0.3","1.12","4.3.0","0.12","1.3.0","2.5.1","1.0.12","1.1.3","2.26","2.0.4","0.16.0","1.8.1.1","4.3.0","4.3.0","4.3.0","3.0.0","0.43","1.8-4","2.3.8"]}]}]}
+{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62]}},"value":[{"type":"character","attributes":{},"value":["backports","base","checkmate","cli","colorspace","commonmark","compiler","datasets","digest","dplyr","ellipsis","evaluate","fansi","fastmap","fontawesome","generics","ggplot2","glue","graphics","grDevices","grid","gtable","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","later","learnr","lifecycle","magrittr","malariasimulation","markdown","MASS","methods","mime","munsell","pillar","pkgconfig","promises","purrr","R6","Rcpp","rlang","rmarkdown","rprojroot","rstudioapi","scales","shiny","stats","tibble","tidyr","tidyselect","tools","utf8","utils","vctrs","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["1.4.1","4.4.0","2.3.1","3.6.2","2.1-0","1.9.1","4.4.0","4.4.0","0.6.35","1.1.4","0.3.2","0.24.0","1.0.6","1.1.1","0.5.2","0.1.3","3.5.1","1.7.0","4.4.0","4.4.0","4.4.0","0.3.5","0.5.8.1","1.6.4","1.6.15","0.1.4","1.8.8","1.46","1.3.2","0.11.5","1.0.4","2.0.3","1.6.0","1.12","7.3-60.2","4.4.0","0.12","0.5.1","1.9.0","2.0.3","1.3.0","1.0.2","2.5.1","1.0.12","1.1.3","2.26","2.0.4","0.16.0","1.3.0","1.8.1.1","4.4.0","3.2.1","1.3.1","1.2.1","4.4.0","1.2.4","4.4.0","0.6.5","3.0.0","0.43","1.8-4","2.3.8"]}]}]}
 </script>
 <!--/html_preserve-->
 
