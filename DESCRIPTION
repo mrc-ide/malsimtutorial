@@ -15,10 +15,12 @@ Depends:
     R (>= 2.10)
 LazyData: true
 Remotes:
-  mrc-ide/malariasimulation
+  mrc-ide/malariasimulation,
+  mrc-ide/malariaEquilibrium
 Imports: 
     dplyr,
     ggplot2,
     learnr,
     malariasimulation,
+    malariaEquilibrium,
     tidyr
