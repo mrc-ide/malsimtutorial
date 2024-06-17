@@ -97,7 +97,7 @@ output_control |>
   scale_color_manual(values= c("#E69F00", "#56B4E9")) +
   scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
   labs(x = "Time (years)", 
-       y = expression(paste(italic(Pf),"PR"[2-10])),
+       y = 'Clinical incidence',
        color= 'Scenario',
        fill = 'Scenario')
 
@@ -206,7 +206,7 @@ full_output |>
   scale_color_manual(values= c("#E69F00", "#56B4E9")) +
   scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
   labs(x = "Time (years)", 
-       y = expression(paste(italic(Pf),"PR"[2-10])),
+       y = 'Clinical incidence',
        color= 'Scenario',
        fill = 'Scenario')
 
@@ -220,7 +220,7 @@ full_output |>
   scale_color_manual(values= c("#E69F00", "#56B4E9")) +
   scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
   labs(x = "Time (years)", 
-       y = "Clinical incidence (per 1000 children aged 0-5)",
+       y = expression(paste(italic(Pf),"PR"[2-10])),
        color= 'Scenario',
        fill = 'Scenario')
 
@@ -337,7 +337,7 @@ full_output |>
   scale_color_manual(values= c("#E69F00", "#56B4E9")) +
   scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
   labs(x = "Time (years)", 
-       y = expression(paste(italic(Pf),"PR"[2-10])),
+       y = 'Clinical incidence',
        color= 'Scenario',
        fill = 'Scenario')
 
@@ -351,7 +351,7 @@ full_output |>
   scale_color_manual(values= c("#E69F00", "#56B4E9")) +
   scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
   labs(x = "Time (years)", 
-       y = "Clinical incidence (per 1000 children aged 0-5)",
+       y = expression(paste(italic(Pf),"PR"[2-10])),
        color= 'Scenario',
        fill = 'Scenario')
 
